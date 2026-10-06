@@ -30,12 +30,35 @@ const {chromium}=require(input.playwright);
    assert.ok((await timeline.innerText()).includes(locale==='zh-TW'?'發布時間: 未知':'Published: Unknown'));
    assert.ok((await timeline.innerText()).includes('UNVERIFIED_NEWS'));
    assert.ok((await timeline.innerText()).includes('UTC'));
+   const mapped=input.view?input.view.mapped_event_count:0;
+   assert.equal(await page.locator('[data-mapped-count]').innerText(),String(mapped));
+   assert.equal(await page.locator('[data-unmapped-count]').innerText(),String((input.counts||[5,5,1])[1]-mapped));
+   assert.ok((await page.locator('.world-map h2').innerText()).includes(locale==='zh-TW'?'全球事件地圖':'World Map'));
+   assert.equal(await page.locator('.map-marker').count(),mapped?1:0);
+   if(mapped){
+    assert.equal(await page.locator('.map-location-list button').count(),mapped);
+    // Synthetic metadata is projected by the actual adapter, never demo evidence.
+    const marker=page.locator('.map-marker').first();
+    await marker.focus();await page.keyboard.press('Enter');
+    if(mapped>1)assert.equal(await page.evaluate(()=>document.activeElement.className),'map-location-group');
+    else assert.equal(await page.evaluate(()=>document.activeElement.id),'event-'+input.view.events.find(e=>e.geography_status==='KNOWN').event_id);
+    const control=page.locator('.map-location-list button').last();
+    const eventId=await control.getAttribute('data-map-event');
+    await control.focus();await page.keyboard.press('Enter');
+    assert.equal(await page.evaluate(()=>document.activeElement.id),'event-'+eventId);
+    assert.equal(await page.locator('#event-'+eventId+' .event-timeline').getAttribute('open'),'');
+    assert.equal(await page.locator('#event-'+eventId).getAttribute('data-event-status'),'UNVERIFIED_NEWS');
+    // Reset to the API's initial disclosure state before baseline timeline checks.
+    await page.reload();await page.locator('.event-card').first().waitFor();
+   }else assert.ok(await page.locator('.map-empty').isVisible());
+   results.push(`${locale}/${mapped?'explicit-synthetic-map-keyboard':'zero-map'}:PASS`);
    for(const width of [375,430,1024,1366,1440]){
     await page.setViewportSize({width,height:1000});
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${locale}: overflow at ${width}`);
     assert.ok(await page.locator('.language-control').isVisible());
     assert.ok(await page.locator('.official-panel').isVisible());
     assert.ok(await timeline.locator('.timeline-list').isVisible());
+    assert.ok(await page.locator('.world-map').isVisible());
     results.push(`${locale}/${width}:PASS`);
     if(width===1440&&locale==='zh-TW'&&input.screenshot)await page.screenshot({path:input.screenshot,fullPage:true});
    }

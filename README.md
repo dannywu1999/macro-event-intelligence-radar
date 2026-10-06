@@ -117,3 +117,28 @@ Timeline works with live refresh and snapshot fallback alike. V0 often produces
 singletons; multi-article events show all explicit members, without expanding
 clustering rules. This is a current evidence projection, not an append-only
 historical change log; articles removed by retention are no longer in the view.
+
+## Geography and World Map V1
+
+The bilingual Showcase adds an inline SVG longitude/latitude grid, mapped-event
+count, location-unknown count and an accessible event list. This is a simple
+equirectangular coordinate background, not a detailed geographic basemap.
+Keyboard/click activation focuses the same Event card and opens its Timeline.
+Events at identical coordinates share a marker but retain separate event controls.
+
+The bundled EIA data has **no explicit supported event coordinates**. Its default
+result is **0 mapped / 5 location unknown**, without fabricated pins. Live articles
+remain unmapped unless explicit metadata for their exact stable event ID exists.
+Headline mentions, publisher location, company/instrument associations and source
+country never determine coordinates. Missing geography stays null/UNKNOWN.
+
+Optional `GLOBAL_EVENT_RADAR_GEOGRAPHY_PATH` reads a separate curator-supplied
+`EVENT_GEOGRAPHY_METADATA_V1` JSON document. V1 accepts only explicitly labeled
+`CURATED_PRESENTATION` points; it does not extract or officially verify geography.
+Known here means valid declared presentation metadata, not a confirmed world-event
+location. The UI discloses this distinction. No default coordinate metadata is
+shipped. See [Deployment](docs/DEPLOYMENT.md) for the input contract.
+
+Geography adds fields without changing event identity, article membership,
+verification, Official Evidence or Timeline. No external map assets, geocoder,
+AI extraction, location network requests or new package dependencies are used.

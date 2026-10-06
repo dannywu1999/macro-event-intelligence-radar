@@ -20,6 +20,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import math
 import os
 import re
 from dataclasses import dataclass
@@ -49,6 +50,7 @@ class EvidencePaths:
     macroview: Path | None = None
     polymarket: Path | None = None
     source_health: Path | None = None
+    geography: Path | None = None
 
     @classmethod
     def from_environment(cls) -> "EvidencePaths":
@@ -72,6 +74,7 @@ class EvidencePaths:
             macroview=macroview,
             polymarket=configured("GLOBAL_EVENT_RADAR_POLYMARKET_PATH"),
             source_health=configured("GLOBAL_EVENT_RADAR_SOURCE_HEALTH_PATH"),
+            geography=configured("GLOBAL_EVENT_RADAR_GEOGRAPHY_PATH"),
         )
 
 
@@ -608,6 +611,8 @@ def build_radar_view(
             "reason": "NEWS_EVIDENCE_PATH_NOT_CONFIGURED", "items": [], "item_count": 0,
             "events": [], "canonical_event_contract": "CANONICAL_EVENT_V0",
             "official_evidence": [], "official_evidence_contract": "OFFICIAL_EVIDENCE_V0",
+            "geography_contract": "EVENT_GEOGRAPHY_V1", "mapped_event_count": 0, "unmapped_event_count": 0,
+            "geography_metadata_status": "NOT_EVALUATED",
             "canonical_event_projection_status": "UNAVAILABLE", "unassigned_article_count": 0,
             "distinct_event_count": None, "last_successful_update": None,
             "source_health": [], "sources": sources,
@@ -625,6 +630,8 @@ def build_radar_view(
             "reason": str(exc), "items": [], "item_count": 0, "distinct_event_count": None,
             "events": [], "canonical_event_contract": "CANONICAL_EVENT_V0",
             "official_evidence": [], "official_evidence_contract": "OFFICIAL_EVIDENCE_V0",
+            "geography_contract": "EVENT_GEOGRAPHY_V1", "mapped_event_count": 0, "unmapped_event_count": 0,
+            "geography_metadata_status": "NOT_EVALUATED",
             "canonical_event_projection_status": "UNAVAILABLE", "unassigned_article_count": 0,
             "last_successful_update": None, "source_health": [], "sources": sources,
         }
@@ -735,17 +742,80 @@ def build_radar_view(
     canonical_events = build_canonical_events(items)
     official_projection = build_official_evidence_projection(official_rows, items, canonical_events["events"])
     official_projection["events"] = build_event_timelines(items, official_projection["official_evidence"], official_projection["events"])
+    geography_metadata = None
+    geography_metadata_status = "NOT_CONFIGURED"
+    if paths.geography is not None:
+        try:
+            records = _read_rows(paths.geography)
+            if (len(records) != 1 or not isinstance(records[0], dict)
+                    or records[0].get("schema") != "EVENT_GEOGRAPHY_METADATA_V1"
+                    or records[0].get("presentation_only") is not True
+                    or not isinstance(records[0].get("events"), dict)):
+                raise EvidenceReadError("GEOGRAPHY_METADATA_INVALID")
+            geography_metadata = records[0]
+            geography_metadata_status = "AVAILABLE"
+        except EvidenceReadError:
+            geography_metadata_status = "UNAVAILABLE"
+    geography_projection = build_event_geographies(official_projection["events"], geography_metadata)
     status = "AVAILABLE" if items else "EMPTY"
     return {
         "contract_version": CONTRACT_VERSION, "read_only": True, "status": status,
         "reason": None if items else "NO_NEWS_DISCOVERY_RECORDS",
         "items": items, "item_count": len(items), "news_item_count": len(items), **canonical_events,
-        **official_projection,
+        **official_projection, **geography_projection,
+        "geography_metadata_status": geography_metadata_status,
         "latest_observed_data_at": latest_observed,
         "last_successful_update": last_update,
         "health_status": _overall_health(source_health, news_rows),
         "source_health": source_health, "sources": sources,
     }
+
+
+def build_event_geographies(events: list[dict[str, Any]], metadata: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    """V1 accepts explicit curator-supplied presentation points only.
+
+    Current News/RSS and Official contracts contain no authoritative coordinates.
+    Never use a headline, publisher, instrument or country keyword to locate an event.
+    Validation checks the declared metadata's shape, not geographical factual truth;
+    CURATED_PRESENTATION is always disclosed and cannot affect verification.
+    """
+    configured = (metadata.get("events", {}) if isinstance(metadata, dict)
+                  and metadata.get("schema") == "EVENT_GEOGRAPHY_METADATA_V1"
+                  and metadata.get("presentation_only") is True else {})
+    if not isinstance(configured, dict):
+        configured = {}
+    enriched = []
+    for event in events:
+        points = {}
+        rows = configured.get(event["event_id"], [])
+        if not isinstance(rows, list) or len(rows) > 16:
+            rows = []
+        for row in rows:
+            if not isinstance(row, dict) or row.get("evidence_type") != "CURATED_PRESENTATION":
+                continue
+            place, reference = _text(row.get("place_name")), _text(row.get("evidence_reference"))
+            country = row.get("country_code")
+            latitude, longitude = row.get("latitude"), row.get("longitude")
+            if (not place or len(place) > 200 or not reference or len(reference) > 1000
+                    or not _valid_url(reference)
+                    or (country is not None and (not isinstance(country, str) or not re.fullmatch(r"[A-Z]{2}", country)))
+                    or type(latitude) not in (int, float) or type(longitude) not in (int, float)
+                    or not -90 <= latitude <= 90 or not -180 <= longitude <= 180
+                    or not math.isfinite(latitude) or not math.isfinite(longitude)):
+                continue
+            point = {"place_name": place, "country_code": country,
+                "latitude": float(latitude) if latitude else 0.0,
+                "longitude": float(longitude) if longitude else 0.0,
+                "evidence_type": "CURATED_PRESENTATION", "evidence_reference": reference}
+            encoded = json.dumps(["EVENT_GEOGRAPHY_V1", event["event_id"], point],
+                                 sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+            identity = "event-geography-v1-" + hashlib.sha256(encoded).hexdigest()
+            points[identity] = {"geography_id": identity, **point}
+        enriched.append({**event, "geography_status": "KNOWN" if points else "UNKNOWN",
+                         "geography": [points[key] for key in sorted(points)] if points else None})
+    mapped = sum(event["geography_status"] == "KNOWN" for event in enriched)
+    return {"events": enriched, "geography_contract": "EVENT_GEOGRAPHY_V1",
+            "mapped_event_count": mapped, "unmapped_event_count": len(enriched) - mapped}
 
 
 def build_event_timelines(items: list[dict[str, Any]], evidence: list[dict[str, Any]],

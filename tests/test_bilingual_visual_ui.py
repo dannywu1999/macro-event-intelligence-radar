@@ -261,6 +261,69 @@ class BilingualVisualTests(unittest.TestCase):
             self.assertEqual(result['en'].count('class="event-timeline"'),5)
             self.assertEqual(result['en'].count('data-timeline-type="OFFICIAL_EVIDENCE"'),1)
 
+    def mapped_view(self, count=1, **changes):
+        from test_radar_geography import metadata, point
+        from tools.stage1b_historical_campaign import global_event_radar_read_adapter as radar
+        view=copy.deepcopy(self.view)
+        view.update(radar.build_event_geographies(view['events'],metadata({
+            event['event_id']:[point(**changes)] for event in view['events'][:count]})))
+        return view
+
+    def test_real_snapshot_zero_map_is_bilingual_without_fake_markers(self):
+        result=self.render()
+        for markup in (result['en'],result['zh']):
+            self.assertIn('data-mapped-count>0</strong>',markup)
+            self.assertIn('data-unmapped-count>5</strong>',markup)
+            self.assertNotIn('class="map-marker"',markup)
+            self.assertIn('class="map-empty"',markup)
+            self.assertEqual(markup.count('data-geography-status="UNKNOWN"'),5)
+        self.assertIn('World Map',result['en'])
+        self.assertIn('全球事件地圖',result['zh'])
+        self.assertIn('not a detailed basemap',result['en'])
+        self.assertTrue(result['unchanged'])
+
+    def test_explicit_point_uses_same_event_identity_and_accessible_list(self):
+        view=self.mapped_view()
+        result=self.render(view=view)
+        for markup in (result['en'],result['zh']):
+            self.assertEqual(markup.count('class="map-marker"'),1)
+            self.assertIn('data-mapped-count>1</strong>',markup)
+            self.assertIn('data-unmapped-count>4</strong>',markup)
+            self.assertIn('href="#event-'+view['events'][0]['event_id']+'"',markup)
+            self.assertIn('class="map-location-list"',markup)
+            self.assertEqual(markup.count('data-geography-status="KNOWN"'),1)
+            self.assertEqual(markup.count('data-event-status="UNVERIFIED_NEWS"'),5)
+            self.assertEqual(markup.count('data-evidence-status="OFFICIAL_CONFIRMED"'),1)
+            self.assertEqual(markup.count('class="event-timeline"'),5)
+        self.assertIn('Presentation geography',result['en'])
+        self.assertIn('展示用地理資訊',result['zh'])
+        self.assertTrue(result['unchanged'])
+
+    def test_collocated_events_share_marker_but_keep_separate_controls(self):
+        result=self.render(view=self.mapped_view(2))
+        self.assertEqual(result['en'].count('class="map-marker"'),1)
+        self.assertEqual(result['en'].count('<button type="button" data-map-event='),2)
+        self.assertIn('data-mapped-count>2</strong>',result['en'])
+        self.assertIn('data-unmapped-count>3</strong>',result['en'])
+        self.assertIn('data-map-list=',result['en'])
+
+    def test_geography_place_and_reference_escaping(self):
+        view=self.mapped_view(place_name='<img src=x onerror="bad()">')
+        result=self.render(view=view)
+        for markup in (result['en'],result['zh']):
+            self.assertNotIn('<img',markup)
+            self.assertIn('&lt;img src=x',markup)
+        view['events'][0]['geography'][0]['evidence_reference']='javascript:bad()'
+        self.assertNotIn('href="javascript:',self.render(view=view)['en'])
+
+    def test_bad_api_coordinates_never_render_svg_markers(self):
+        for value in (None,True,'10',91):
+            view=self.mapped_view()
+            view['events'][0]['geography'][0]['latitude']=value
+            result=self.render(view=view)
+            self.assertNotIn('class="map-marker"',result['en'])
+            self.assertIn('data-mapped-count>0</strong>',result['en'])
+
 
 if __name__ == '__main__':
     unittest.main()
