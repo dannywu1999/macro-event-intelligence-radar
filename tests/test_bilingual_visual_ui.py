@@ -197,6 +197,70 @@ class BilingualVisualTests(unittest.TestCase):
         self.assertIn('New EIA article in English',result['zh'])
         self.assertEqual(result['zh'].count('data-presentation-only="true"'),6)
 
+    def test_event_timelines_are_bilingual_and_only_evidenced_one_is_expanded(self):
+        result=self.render()
+        for markup in (result['en'],result['zh']):
+            self.assertEqual(markup.count('class="event-timeline"'),5)
+            self.assertEqual(markup.count('<details class="event-timeline" open>'),1)
+            self.assertEqual(markup.count('data-timeline-type="NEWS_DISCOVERED"'),5)
+            self.assertEqual(markup.count('data-timeline-type="OFFICIAL_EVIDENCE"'),1)
+        self.assertIn('Event Timeline',result['en'])
+        self.assertIn('事件時間軸',result['zh'])
+        self.assertIn('Current status',result['en'])
+        self.assertIn('目前狀態',result['zh'])
+        self.assertTrue(result['unchanged'])
+
+    def test_timeline_official_observation_and_publication_labels_are_distinct(self):
+        result=self.render()
+        self.assertIn('data-timestamp-role="EVIDENCE_FIRST_SEEN_AT"',result['en'])
+        self.assertIn('Evidence first observed:',result['en'])
+        self.assertIn('首次取得證據:',result['zh'])
+        self.assertIn('Published: Unknown',result['en'])
+        self.assertIn('發布時間: 未知',result['zh'])
+        self.assertIn(' UTC</time>',result['en'])
+        self.assertIn('title="2026-10-06T03:15:25.730676Z"',result['en'])
+        self.assertNotIn('data-timestamp-role="EVIDENCE_PUBLISHED_AT"',result['en'])
+
+    def test_unknown_timeline_time_has_a_separate_section(self):
+        view=copy.deepcopy(self.view)
+        entry=view['events'][0]['timeline'][0]
+        entry.update(timestamp=None,timestamp_role='UNKNOWN',observed_at=None)
+        result=self.render(view=view)
+        self.assertIn('class="timeline-unknown"',result['en'])
+        self.assertIn('Time unknown',result['en'])
+        self.assertIn('時間未知',result['zh'])
+        self.assertNotIn('Invalid Date',result['en'])
+
+    def test_timeline_titles_sources_links_and_role_fields_are_escaped(self):
+        view=copy.deepcopy(self.view)
+        entry=view['events'][0]['timeline'][0]
+        entry.update(title='<img src=x onerror="bad()">',source_name='<script>bad()</script>',source_url='javascript:bad()',timestamp_role='UNKNOWN')
+        result=self.render(view=view)
+        for markup in (result['en'],result['zh']):
+            self.assertNotIn('<img',markup)
+            self.assertNotIn('<script>',markup)
+            self.assertNotIn('href="javascript:',markup)
+            self.assertIn('&lt;img',markup)
+        self.assertIn('href="https://www.eia.gov/todayinenergy/detail.php?id=68245"',result['en'])
+
+    def test_timeline_summary_and_current_status_do_not_claim_event_verification(self):
+        result=self.render()
+        self.assertIn('2 Timeline entries',result['en'])
+        self.assertIn('1 News reports',result['en'])
+        self.assertIn('1 Official Evidence items',result['en'])
+        self.assertIn('Event remains UNVERIFIED_NEWS;',result['en'])
+        self.assertIn('事件仍為未驗證新聞',result['zh'])
+        self.assertIn('data-timeline-presentation-only="true"',result['zh'])
+        self.assertNotIn('Event verified',result['en'])
+
+    def test_live_and_fallback_timelines_are_derived_from_the_same_event_data(self):
+        for status in ('LIVE','SNAPSHOT_FALLBACK'):
+            view=copy.deepcopy(self.view)
+            view['live_ingestion']={'enabled':True,'status':status,'last_success_at':None}
+            result=self.render(view=view)
+            self.assertEqual(result['en'].count('class="event-timeline"'),5)
+            self.assertEqual(result['en'].count('data-timeline-type="OFFICIAL_EVIDENCE"'),1)
+
 
 if __name__ == '__main__':
     unittest.main()

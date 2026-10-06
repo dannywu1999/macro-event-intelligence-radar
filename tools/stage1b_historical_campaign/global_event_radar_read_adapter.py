@@ -734,6 +734,7 @@ def build_radar_view(
     latest_observed = _iso(max(observed_values)) if observed_values else None
     canonical_events = build_canonical_events(items)
     official_projection = build_official_evidence_projection(official_rows, items, canonical_events["events"])
+    official_projection["events"] = build_event_timelines(items, official_projection["official_evidence"], official_projection["events"])
     status = "AVAILABLE" if items else "EMPTY"
     return {
         "contract_version": CONTRACT_VERSION, "read_only": True, "status": status,
@@ -745,6 +746,94 @@ def build_radar_view(
         "health_status": _overall_health(source_health, news_rows),
         "source_health": source_health, "sources": sources,
     }
+
+
+def build_event_timelines(items: list[dict[str, Any]], evidence: list[dict[str, Any]],
+                          events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Presentation-only chronology from explicit V0 membership, never new links.
+
+    Reported time requires REPORTED_TIME. Proxy dates are not publication.
+    Missing times stay null and sort last. IDs depend on event/type/source identity,
+    not timestamps or ordering. Current status is a summary, not a dated entry.
+    """
+    articles: dict[str, list[dict[str, Any]]] = {}
+    for item in items:
+        reference = _text(item.get("article_reference"))
+        if reference:
+            articles.setdefault(reference, []).append(item)
+    official: dict[str, list[dict[str, Any]]] = {}
+    for record in evidence:
+        identity = _text(record.get("official_evidence_id"))
+        if identity:
+            official.setdefault(identity, []).append(record)
+
+    def timestamp(record: Mapping[str, Any], fields: list[tuple[str, str]]) -> tuple[str | None, str]:
+        for field, role in fields:
+            value = record.get(field)
+            if _utc(value) is not None:
+                return value, role
+        return None, "UNKNOWN"
+
+    def entry_id(event_id: str, kind: str, identity: str) -> str:
+        encoded = json.dumps(["EVENT_TIMELINE_V1", event_id, kind, identity], ensure_ascii=False,
+                             separators=(",", ":")).encode("utf-8")
+        return "event-timeline-v1-" + hashlib.sha256(encoded).hexdigest()
+
+    enriched = []
+    for event in events:
+        entries = []
+        event_id = event["event_id"]
+        for reference in sorted(set(event.get("article_references") or [])):
+            copies = articles.get(reference, [])
+            if not copies:
+                continue
+            # Same conflict rule as Canonical V0. Ambiguous copies cannot add a story.
+            signatures = {(i.get("title"), i.get("reported_at"), i.get("reported_time_kind"),
+                           (i.get("news_source") or {}).get("name")) for i in copies}
+            if len(signatures) != 1:
+                continue
+            item = dict(min(copies, key=lambda i: json.dumps(i, sort_keys=True, ensure_ascii=False)))
+            observations = [_utc(i.get("observed_at")) for i in copies]
+            observations = [value for value in observations if value is not None]
+            if observations:
+                item["observed_at"] = _iso(min(observations))
+            fields = [("reported_at", "REPORTED_AT")] if item.get("reported_time_kind") == "REPORTED_TIME" else []
+            moment, role = timestamp(item, fields + [("observed_at", "OBSERVED_AT"), ("discovered_at", "OBSERVED_AT")])
+            source = item.get("news_source") or {}
+            entries.append({"timeline_entry_id": entry_id(event_id, "NEWS_DISCOVERED", reference),
+                "entry_type": "NEWS_DISCOVERED", "timestamp": moment, "timestamp_role": role,
+                "title": item.get("title"), "source_name": source.get("name"),
+                "source_url": source.get("url"), "article_reference": reference,
+                "observed_at": item.get("observed_at"), "status": "UNVERIFIED_NEWS"})
+        for identity in sorted(set(event.get("official_evidence_ids") or [])):
+            copies = official.get(identity, [])
+            # An identity with conflicting copies must never select a convenient record.
+            unique = {json.dumps(record, sort_keys=True, ensure_ascii=False) for record in copies}
+            if len(unique) != 1:
+                continue
+            record = copies[0]
+            if (record.get("canonical_event_id") != event_id
+                    or record.get("evidence_status") != "OFFICIAL_CONFIRMED"
+                    or not _text(record.get("fact_proposition"))):
+                continue
+            moment, role = timestamp(record, [("published_at", "EVIDENCE_PUBLISHED_AT"),
+                ("first_seen_at", "EVIDENCE_FIRST_SEEN_AT"), ("retrieved_at", "EVIDENCE_RETRIEVED_AT")])
+            entries.append({"timeline_entry_id": entry_id(event_id, "OFFICIAL_EVIDENCE", identity),
+                "entry_type": "OFFICIAL_EVIDENCE", "timestamp": moment, "timestamp_role": role,
+                "title": record.get("fact_proposition"), "source_name": record.get("authority_name"),
+                "source_url": record.get("document_url"), "official_evidence_id": identity,
+                "published_at": record.get("published_at"), "status": "OFFICIAL_CONFIRMED"})
+        maximum = datetime.max.replace(tzinfo=timezone.utc)
+        priority = {"NEWS_DISCOVERED": 0, "OFFICIAL_EVIDENCE": 1}
+        entries.sort(key=lambda entry: (entry["timestamp"] is None, _utc(entry["timestamp"]) or maximum,
+                                        priority[entry["entry_type"]], entry["timeline_entry_id"]))
+        news_count = sum(entry["entry_type"] == "NEWS_DISCOVERED" for entry in entries)
+        official_count = sum(entry["entry_type"] == "OFFICIAL_EVIDENCE" for entry in entries)
+        enriched.append({**event, "timeline_contract": "EVENT_TIMELINE_V1", "timeline": entries,
+            "timeline_count": len(entries), "status_summary": {
+                "verification_status": event.get("verification_status"),
+                "news_article_count": news_count, "official_evidence_count": official_count}})
+    return enriched
 
 
 def _overall_health(rows: list[dict[str, Any]], news_rows: list[dict[str, Any]]) -> str:

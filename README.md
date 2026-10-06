@@ -95,3 +95,25 @@ separate. New EIA RSS articles are always UNVERIFIED_NEWS, and never gain
 Official Evidence merely because EIA published them. Existing proposition evidence
 remains linked only to its original event. Original English is shown when a live
 article has no manually defined Chinese presentation summary.
+
+## Event Timeline V1
+
+Each event has an expandable, deterministic Timeline derived solely from its
+existing article references and explicitly linked Official Evidence IDs. News
+entries prefer valid reported times, otherwise label stored detection time;
+proxy source dates never become publication times. Official entries prefer
+publication when known, otherwise clearly label first observation or retrieval.
+Missing times stay null in the API and appear in a separate Time unknown section.
+Readable UI dates show UTC explicitly with exact ISO values retained in tooltips.
+
+`timeline`, `timeline_count`, `timeline_contract` and `status_summary` are additive
+event fields. Stable entry IDs bind event/type/source identity, not display order.
+Current status is undated: the event remains UNVERIFIED_NEWS, and Official
+Evidence confirms specific propositions only. The evidenced demo Timeline opens
+by default; other events stay compact. No timeline database, new links, inferred
+event creation/occurrence times, AI summaries or mutation endpoints are added.
+
+Timeline works with live refresh and snapshot fallback alike. V0 often produces
+singletons; multi-article events show all explicit members, without expanding
+clustering rules. This is a current evidence projection, not an append-only
+historical change log; articles removed by retention are no longer in the view.
