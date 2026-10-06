@@ -1,22 +1,25 @@
 {
   "files": {
-    ".dockerignore": "32851b93faa0b048c08fa2e083e9401ba7acfe6186c770441e49d100fe372f7d",
+    ".dockerignore": "935555cc31063ae1482ebad319924f8a377f4ee9dd5e44a72181fb9ebd5a96b2",
     ".gitignore": "5154e072c37ab68f36786b41bd017eec68903c7c5fa310d96d10c834bf787df0",
-    "Dockerfile": "fc59769b45fe7fe53f1d2870c366d1f5b2eb695e62aaca564265898b3df03069",
-    "README.md": "9b307ed2bcb8f0b47621f084f4353eb24db1b6d191c70b35b71929b06292ce44",
+    "Dockerfile": "36e34a8fc0492ca1714bc39fed509bd1847dcec9e027fa389661f0501a9ca460",
+    "README.md": "16cd12482eb05797c39bb502ce902ccd0b8b0c8dc712e4975e4f9991fee9cb6d",
     "demo/radar_public/metadata.json": "017b918c59c6471038694dae409b19ccce403d26e37b4c3fedc7756b8c2e3b11",
     "demo/radar_public/news/rss_headlines_eia_snapshot.csv": "1fdca35fe42e046f5eb71b3bfcef846c57ed28535d45666e5de06b92d29073cc",
     "demo/radar_public/official-packet.json": "4a6226a6d8d52746d17c0ea60d6e4d8add479184eeaf59499e454ed97ede7cdc",
-    "docs/DEPLOYMENT.md": "6b35307be1a5a703afd2416ff96a5a56adff32221e5dcd15c65483f5d51e9d6e",
-    "tests/test_bilingual_visual_ui.py": "bd7d70bcd2dcf3c07d2becdb8d1b51e44939efcbd3e412325103cd878ff72249",
-    "tests/test_public_root_route.py": "97f06587fd06f3d69f94dc2b40edefc6efef9fb057f54e12b61ebc5843bee420",
-    "tests/ui_browser_preview.cjs": "45db5d0db14ee77e690cc9fd55d4d968e79665365cad1a1b9ccf15c03a3340ed",
+    "docs/DEPLOYMENT.md": "ff53c9af6260280733495d61273cee9495f1ff2f7ff53c54d6ab65add18c4720",
+    "tests/fixtures/eia_live_rss.xml": "488b7a0105731ebc0c4c52611a97bba0d91dad3cd5e4c4e611263876c23701f6",
+    "tests/test_bilingual_visual_ui.py": "c2822d9ab115fba2368860d92d81523bcc4fed3ef25df502376f7dcde06a402b",
+    "tests/test_eia_live_ingestion.py": "bf15dbb54bb400cb2918e95a6017065b0139959a17487c9bd11cac7b658a31de",
+    "tests/test_public_root_route.py": "5af084df76424a8e00f1d4d64d0629f46f0b4ee0cc12c5dcd2bce63e4cff34ce",
+    "tests/ui_browser_preview.cjs": "319f49c34964c9a725a2693c07d5ad8998ad7b12312ee3a62221138072aff039",
     "tests/ui_render_harness.cjs": "efef4bae6a90113a2c771db154420a98729410fc3634c3b0151fcfc4b352ce0a",
     "tools/stage1b_historical_campaign/__init__.py": "d3e4afd1ab72526e89340a04f7cdabfeee19421118a10b82f507d56688d97cbd",
+    "tools/stage1b_historical_campaign/eia_live_ingestion.py": "ae0bfc631d05fc87d8ce0fd6c638a7badf6ea19e39a1fb4ecdebf7c00cf79406",
     "tools/stage1b_historical_campaign/global_event_radar_read_adapter.py": "46aab7cd176466db7ecf38e67c6312dfa379fc2f7a947964b29e21cc2938eeae",
-    "tools/stage1b_historical_campaign/radar_web_server.py": "5c2e4bcab4107872739b590e561a19460a560f28467b855e5d72e5c4c421f24b",
-    "ui/macro_trading_os_unified_app_v1.html": "dfd934484e0a394d804e1d992d6f3ed465d6a69bf61aaf8218055bf1c952e0d8",
-    "ui/radar_demo_translations.js": "b809cb53b72bae84b7fd1e5f5d3bbe0c6f4b7ab783f7345d18424cebc788c890"
+    "tools/stage1b_historical_campaign/radar_web_server.py": "c9570a04263d333c4780ae6ea42b45880dd26b2794a7709a4a6f05288d781fc0",
+    "ui/radar_demo_translations.js": "b809cb53b72bae84b7fd1e5f5d3bbe0c6f4b7ab783f7345d18424cebc788c890",
+    "ui/radar_public_showcase_v1.html": "0d810077ab9276a0e3a07e00c19b7aaf8858ee88335846ba69f7d43aa0507320"
   },
   "schema": "RADAR_PUBLIC_RELEASE_V1"
 }

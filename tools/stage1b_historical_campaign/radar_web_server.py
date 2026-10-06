@@ -9,6 +9,8 @@ import argparse
 import hashlib
 import json
 import os
+import signal
+import threading
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -28,8 +30,15 @@ def require(value: bool, code: str) -> None:
         raise GovernanceError(code)
 
 
-def feed_view() -> dict[str, Any]:
-    view = event_radar.build_radar_view()
+def feed_view(ingestion=None) -> dict[str, Any]:
+    if ingestion is not None:
+        view = ingestion.read_view(event_radar, event_radar.EvidencePaths.from_environment())
+    else:
+        view = event_radar.build_radar_view()
+        view['live_ingestion'] = {'enabled': False, 'source': 'EIA Today in Energy', 'status': 'DISABLED',
+                                 'last_attempt_at': None, 'last_success_at': None,
+                                 'refresh_interval_seconds': None, 'article_count': view.get('item_count'),
+                                 'new_article_count': 0, 'reason': None}
     require(isinstance(view, dict) and isinstance(view.get("events"), list)
             and view.get("canonical_event_contract") == "CANONICAL_EVENT_V0",
             "RADAR_CANONICAL_PROJECTION_UNAVAILABLE:RESTART_RADAR_ONLY_SERVER")
@@ -63,7 +72,9 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def _html(self) -> None:
-        page = UI.read_text(encoding="utf-8")
+        showcase = os.environ.get("RADAR_DEMO_MODE", "").strip() == "1" or os.environ.get("RADAR_LIVE_EIA", "").strip() == "1"
+        page_file = ROOT / "ui/radar_public_showcase_v1.html" if showcase or not UI.is_file() else UI
+        page = page_file.read_text(encoding="utf-8")
         # Change only this read-only response's legacy local-operation labels.
         page = page.replace("LOCALHOST ONLY", "READ-ONLY RADAR").replace(
             '>LOCALHOST</span>', '>READ ONLY</span>')
@@ -83,8 +94,7 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/healthz":
             self.reply(200, {"status": "ok", "service": "macro-trading-os-radar"})
         elif path == "/ui/radar_demo_translations.js":
-            # A fixed public presentation asset, never an evidence or API input.
-            data = (ROOT / "ui" / "radar_demo_translations.js").read_bytes()
+            data = (ROOT / "ui/radar_demo_translations.js").read_bytes()
             self.send_response(200)
             self.send_header("Content-Type", "text/javascript; charset=utf-8")
             self.send_header("Content-Length", str(len(data)))
@@ -93,7 +103,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(data)
         elif path == "/api/app/radar":
             try:
-                self.reply(200, feed_view())
+                self.reply(200, feed_view(getattr(self.server, "live_ingestion", None)))
             except GovernanceError as exc:
                 self.reply(503, {"error": str(exc), "read_only": True})
         elif path == "/" or (path.startswith("/") and not path.startswith("/api/")):
@@ -113,17 +123,25 @@ def bind_server(*, radar_only: bool = True) -> ThreadingHTTPServer:
     server = ThreadingHTTPServer((HOST, PORT), Handler)
     server.radar_only = True
     server.daemon_threads = True
+    server.live_ingestion = None
     return server
 
 
 def serve(open_browser: bool = False, *, radar_only: bool = True) -> None:
     require(radar_only, "RADAR_ONLY_REQUIRED")
     module_file, source_sha = radar_adapter_identity()
-    require(UI.is_file(), "RADAR_UI_UNAVAILABLE")
+    require(UI.is_file() or (ROOT / "ui/radar_public_showcase_v1.html").is_file(), "RADAR_UI_UNAVAILABLE")
     print(f"RADAR_ADAPTER_MODULE={module_file}", flush=True)
     print(f"RADAR_ADAPTER_SHA256={source_sha}", flush=True)
     print("RADAR_CANONICAL_EVENT_CONTRACT=CANONICAL_EVENT_V0", flush=True)
     server = bind_server(radar_only=True)
+    if os.environ.get("RADAR_LIVE_EIA", "").strip() == "1":
+        from tools.stage1b_historical_campaign.eia_live_ingestion import EiaIngestion
+        try:
+            server.live_ingestion = EiaIngestion.from_environment()
+        except Exception:
+            server.server_close()
+            raise
     print(f"RADAR_LISTENING={HOST}:{server.server_port}", flush=True)
     print("RADAR READ-ONLY | NO LEGACY RUNTIME", flush=True)
     if open_browser:
@@ -133,12 +151,24 @@ def serve(open_browser: bool = False, *, radar_only: bool = True) -> None:
             webbrowser.open(f"http://{browser_host}:{server.server_port}/#/feed")
         except Exception as exc:
             print(f"BROWSER_AUTO_OPEN_FAILED={type(exc).__name__}", flush=True)
+    previous_sigterm = None
+    if threading.current_thread() is threading.main_thread():
+        previous_sigterm = signal.getsignal(signal.SIGTERM)
+        def terminate(signum, frame):
+            raise KeyboardInterrupt
+        signal.signal(signal.SIGTERM, terminate)
     try:
+        if getattr(server, "live_ingestion", None) is not None:
+            server.live_ingestion.start()
         server.serve_forever()
     except KeyboardInterrupt:
         pass
     finally:
         server.server_close()
+        if getattr(server, "live_ingestion", None) is not None:
+            server.live_ingestion.close()
+        if previous_sigterm is not None:
+            signal.signal(signal.SIGTERM, previous_sigterm)
         print("STATUS: STOPPED", flush=True)
 
 

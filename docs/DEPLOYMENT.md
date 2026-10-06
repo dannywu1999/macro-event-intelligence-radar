@@ -1,7 +1,7 @@
 # Standalone demo deployment
 
 This repository contains only the read-only Radar product and bundled EIA
-snapshot. There is no live ingestion, persistent disk or account secret required
+snapshot. Live EIA refresh is opt-in; no persistent disk or account secret is required
 by the application. Actual Linux/cloud execution must be verified at deployment;
 offline package verification is not a claim of a deployed public service.
 
@@ -49,7 +49,7 @@ GLOBAL_EVENT_RADAR_OFFICIAL_PATH=official-packet.json RADAR_DEMO_MODE=1 \
 python -B -m tools.stage1b_historical_campaign.radar_web_server --serve --radar-only
 ```
 
-Local defaults stay `127.0.0.1:8765`. The web application does not write evidence.
+Local defaults stay `127.0.0.1:8765`. The web application does not rewrite bundled evidence. Live mode writes only a separate temporary CSV.
 For a local Docker test use a temporary port bound only to loopback:
 
 ```sh
@@ -90,3 +90,27 @@ git push -u origin main
 
 Do not proceed if any command fails. Do not force-add ignored runtime/generated
 files. A passing offline export check does not automatically authorize deployment.
+
+## Enable A5.1 after publishing
+
+Keep the existing data/Official/demo configuration and add:
+
+```text
+RADAR_LIVE_EIA=1
+RADAR_EIA_REFRESH_SECONDS=1800
+RADAR_EIA_MAX_ARTICLES=100
+```
+
+`RADAR_RUNTIME_ROOT` is optional; leave it unset to use a unique writable OS
+temporary session. Never point it inside the bundled demo. No persistent disk
+is needed. Runtime refresh state is ephemeral; the validated bundle is always
+the restart fallback. EIA acquisition uses HTTPS with normal certificate checking,
+one request per cycle, a 10-second transport timeout and no redirects/retries.
+
+Free hosting sleep pauses process-owned refresh. This is not guaranteed 24/7
+ingestion. Verify cloud acquisition status after deployment; a local test does
+not prove Render can reach EIA. A fetch failure degrades safely without affecting
+`/healthz`. The default without `RADAR_LIVE_EIA=1` remains the fixed snapshot.
+
+A5.1 public UI source is `ui/radar_public_showcase_v1.html` in the MAIN repository;
+export copies it unchanged. The legacy unified local pages are preserved separately.

@@ -12,13 +12,14 @@ const {chromium}=require(input.playwright);
    const page=await context.newPage();
    await page.goto(input.origin+'/#/feed');
    await page.locator('.event-card').first().waitFor();
-   assert.equal(await page.locator('.event-card').count(),5);
+   assert.equal(await page.locator('.event-card').count(),(input.counts||[5,5,1])[1]);
    assert.equal(await page.locator('.official-record').count(),1);
-   assert.deepEqual(await page.locator('.count').allTextContents(),['5','5','1']);
-   assert.equal(await page.locator('[data-event-status="UNVERIFIED_NEWS"]').count(),5);
+   if(input.live)assert.equal(await page.locator('[data-live-status]').getAttribute('data-live-status'),'LIVE');
+   assert.deepEqual(await page.locator('.count').allTextContents(),(input.counts||[5,5,1]).map(String));
+   assert.equal(await page.locator('[data-event-status="UNVERIFIED_NEWS"]').count(),(input.counts||[5,5,1])[1]);
    assert.equal(await page.locator('[data-evidence-status="OFFICIAL_CONFIRMED"]').count(),1);
    assert.equal(await page.locator('.official-panel').getAttribute('open'),'');
-   assert.equal(await page.locator('.no-evidence').count(),4);
+   assert.equal(await page.locator('.no-evidence').count(),(input.counts||[5,5,1])[1]-1);
    assert.ok((await page.locator('.official-record').innerText()).includes(locale==='zh-TW'?'發布時間: 未知':'Published: Unknown'));
    assert.ok((await page.locator('.official-record').innerText()).includes('Crude oil prices and refinery margins generally increased throughout the third quarter'));
    for(const width of [375,430,1024,1366,1440]){

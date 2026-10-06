@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>EIA fixture</title>
+<item><title>Updated title must not replace pinned evidence</title><link>https://www.eia.gov/todayinenergy/detail.php?id=68245</link><pubDate>Tue, 06 Oct 2026 14:00:00 GMT</pubDate></item>
+<item><title>New energy supply report</title><description>Fixture discovery only.</description><link>https://www.eia.gov/todayinenergy/detail.php?id=99901</link><pubDate>Tue, 06 Oct 2026 14:00:00 GMT</pubDate></item>
+<item><title>Undated energy report</title><link>https://www.eia.gov/todayinenergy/detail.php?id=99902</link></item>
+<item><title>Duplicate report</title><link>https://www.eia.gov/todayinenergy/detail.php?id=99901</link></item>
+<item><title>Not an EIA link</title><link>https://other.example/story</link></item>
+<item><link>https://www.eia.gov/todayinenergy/detail.php?id=99903</link></item>
+</channel></rss>

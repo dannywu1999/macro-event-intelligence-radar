@@ -17,18 +17,28 @@ ROOT = Path(__file__).resolve().parents[1]
 class PublicRootRouteTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        manifest = json.loads((ROOT / "PUBLIC_RELEASE_MANIFEST.json").read_text(encoding="utf-8"))
+        manifest_path = ROOT / "PUBLIC_RELEASE_MANIFEST.json"
+        if manifest_path.is_file():
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        else:
+            # MAIN source tree: exact product files only, never legacy/handoff scans.
+            manifest = {"files": ["ui/radar_public_showcase_v1.html", "ui/radar_demo_translations.js",
+                "tools/stage1b_historical_campaign/radar_web_server.py",
+                "tools/stage1b_historical_campaign/eia_live_ingestion.py",
+                "tools/stage1b_historical_campaign/global_event_radar_read_adapter.py",
+                "demo/radar_public/news/rss_headlines_eia_snapshot.csv",
+                "demo/radar_public/official-packet.json", "demo/radar_public/metadata.json"]}
         cls.before = {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
                       for name in manifest["files"]}
         # Compare current working-tree bytes before/after serving. Git line-ending
         # conversion is separate from the root-route/read-only contract.
         env = {k: v for k, v in os.environ.items() if not k.startswith("GLOBAL_EVENT_RADAR_")
-               and k not in {"HOST", "PORT", "RADAR_DATA_ROOT", "RADAR_DEMO_MODE", "PYTHONPATH"}}
+               and k not in {"HOST", "PORT", "RADAR_DATA_ROOT", "RADAR_DEMO_MODE", "RADAR_LIVE_EIA", "RADAR_RUNTIME_ROOT", "PYTHONPATH"}}
         env.update({"HOST": "127.0.0.1", "PORT": "0", "RADAR_DATA_ROOT": str(ROOT / "demo/radar_public"),
                     "GLOBAL_EVENT_RADAR_NEWS_PATH": "news",
                     "GLOBAL_EVENT_RADAR_OFFICIAL_PATH": "official-packet.json", "RADAR_DEMO_MODE": "1"})
         launch = "import sys,runpy;sys.path.insert(0,sys.argv[1]);sys.argv=['radar','--serve','--radar-only'];runpy.run_module('tools.stage1b_historical_campaign.radar_web_server',run_name='__main__')"
-        cls.process = subprocess.Popen([sys.executable, "-I", "-B", "-c", launch, str(ROOT)],
+        cls.process = subprocess.Popen([sys.executable, "-I", "-B", "-X", "utf8", "-c", launch, str(ROOT)],
                 cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 text=True, encoding="utf-8")
         lines = queue.Queue()
@@ -89,7 +99,7 @@ class PublicRootRouteTests(unittest.TestCase):
         for text in ("radarOnly:true", "demoMode:true", "News Discovery", "Canonical Events",
                      "Official Evidence", "PUBLIC DEMO", "READ-ONLY SNAPSHOT"):
             self.assertIn(text, page)
-        expected = (ROOT / "ui/macro_trading_os_unified_app_v1.html").read_text(encoding="utf-8")
+        expected = (ROOT / "ui/radar_public_showcase_v1.html").read_text(encoding="utf-8")
         expected = expected.replace("LOCALHOST ONLY", "READ-ONLY RADAR").replace('>LOCALHOST</span>', '>READ ONLY</span>')
         expected = expected.replace("<script>", '<script>window.__MACRO_OS_CONFIG__={radarOnly:true,demoMode:true};</script><script>', 1)
         self.assertEqual(page, expected)

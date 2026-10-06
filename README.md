@@ -20,7 +20,7 @@ identities and transparent missing-data handling.
   observed/source timestamps and UNKNOWN source health when no health evidence exists.
 - `PUBLIC DEMO · READ-ONLY SNAPSHOT` identifies the immutable dataset.
 
-This public snapshot has **no automated live ingestion**. It is not exhaustive
+With live ingestion disabled, this public snapshot has **no automated live ingestion**. It is not exhaustive
 global coverage and does not promise production uptime. This repository/demo
 **does not perform live trading**, price prediction or order execution.
 
@@ -49,8 +49,8 @@ provenance. No database, frontend build or third-party Python package is require
 The existing Python package paths are preserved for import compatibility.
 
 The container is non-root, and the application only serves its UI, Radar API
-and minimal `GET /healthz`. Mutation methods are rejected; no collectors or
-administrative runtime are included.
+and minimal `GET /healthz`. Mutation methods are rejected; no legacy collectors or
+administrative runtime are included. The opt-in EIA refresh thread belongs to the web process.
 
 ## Run and deploy
 
@@ -69,3 +69,29 @@ and SHA256. `demo/radar_public/metadata.json` records immutable data hashes and 
 Source: **[U.S. Energy Information Administration](https://www.eia.gov/todayinenergy/)**.
 Original EIA article/evidence links are preserved. No EIA logo is reproduced.
 This independent demonstration is **not endorsed by EIA**.
+
+## Cloud Live EIA Ingestion V1
+
+Enable `RADAR_LIVE_EIA=1` for one EIA Today in Energy RSS fetch on startup and
+periodic refresh while the service is active. `RADAR_EIA_REFRESH_SECONDS=1800`
+(default; minimum 300, maximum 86400) controls the interval.
+`RADAR_EIA_MAX_ARTICLES=100` controls total retention (5 to 1000). All five
+validated bundled articles are pinned; additional articles are retained newest
+first by reported time, or observation time when publication is unknown.
+Unchanged source URLs keep their original observations/content and event IDs.
+No automatic retry occurs inside a cycle, and no new source is enabled.
+
+`RADAR_RUNTIME_ROOT` optionally selects a writable temporary runtime directory.
+The default uses the OS temporary directory with a unique session subdirectory.
+State is ephemeral: each restart begins with the unchanged bundled snapshot.
+A persistent disk is not required. Free hosting may sleep, so this is **not
+guaranteed 24/7 ingestion** or real-time breaking-news monitoring.
+
+The API adds `live_ingestion` acquisition status (DISABLED / STARTING / LIVE /
+SNAPSHOT_FALLBACK), last attempt/success, interval and counts, with no paths or
+secrets. A failed refresh keeps the last valid runtime feed or bundled snapshot.
+The bilingual UI states that fallback explicitly. Source factual health remains
+separate. New EIA RSS articles are always UNVERIFIED_NEWS, and never gain
+Official Evidence merely because EIA published them. Existing proposition evidence
+remains linked only to its original event. Original English is shown when a live
+article has no manually defined Chinese presentation summary.

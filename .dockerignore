@@ -7,8 +7,9 @@
 !tools/stage1b_historical_campaign/global_event_radar_read_adapter.py
 !tools/stage1b_historical_campaign/radar_web_server.py
 !ui/
-!ui/macro_trading_os_unified_app_v1.html
+!ui/radar_public_showcase_v1.html
 !ui/radar_demo_translations.js
+!tools/stage1b_historical_campaign/eia_live_ingestion.py
 !demo/
 !demo/radar_public/
 !demo/radar_public/news/

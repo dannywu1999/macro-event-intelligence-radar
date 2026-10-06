@@ -1,6 +1,7 @@
 """Actual served frontend JavaScript + isolated HTTP server; no external network."""
 import copy
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -9,7 +10,8 @@ import unittest
 import test_public_root_route as http_fixture
 ROOT = http_fixture.ROOT
 
-NODE = shutil.which("node") or str(Path.home() / ".cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe")
+BUNDLED_NODE = Path.home() / ".cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe"
+NODE = os.environ.get('RADAR_TEST_NODE') or (str(BUNDLED_NODE) if BUNDLED_NODE.is_file() else shutil.which('node'))
 TARGET = "canonical-event-v0-3157198c23e7f1b75248aaeb68f4ab5b750adcfb54749b60143dcb231530abf3"
 
 
@@ -161,8 +163,39 @@ class BilingualVisualTests(unittest.TestCase):
         adapter = (ROOT / 'tools/stage1b_historical_campaign/global_event_radar_read_adapter.py').read_text(encoding='utf-8')
         self.assertNotIn('RADAR_DEMO_TRANSLATIONS', adapter)
         self.assertNotIn('radar_demo_translations', adapter)
-        self.assertIn('COPY ui/radar_demo_translations.js ui/radar_demo_translations.js', (ROOT/'Dockerfile').read_text())
-        self.assertIn('!ui/radar_demo_translations.js', (ROOT/'.dockerignore').read_text())
+        self.assertIn('COPY ui/radar_demo_translations.js ui/radar_demo_translations.js', (ROOT / ('Dockerfile' if (ROOT/'Dockerfile').is_file() else 'Dockerfile.radar')).read_text())
+        self.assertIn('!ui/radar_demo_translations.js', (ROOT / ('.dockerignore' if (ROOT/'.dockerignore').is_file() else 'Dockerfile.radar.dockerignore')).read_text())
+
+    def test_live_status_is_bilingual_and_separate_from_health(self):
+        view=copy.deepcopy(self.view)
+        view['live_ingestion']={'enabled':True,'status':'LIVE','last_success_at':'2026-10-06T15:00:00Z'}
+        result=self.render(view=view)
+        self.assertIn('CLOUD-UPDATED EIA FEED',result['en'])
+        self.assertIn('雲端自動更新 EIA 資料',result['zh'])
+        self.assertIn('2026-10-06T15:00:00Z',result['zh'])
+        self.assertIn('Source health: <strong>Unknown',result['en'])
+        self.assertNotIn('PUBLIC DEMO',result['en'])
+        self.assertTrue(result['unchanged'])
+
+    def test_starting_and_fallback_are_not_fatal_and_never_hide_data(self):
+        for status in ('STARTING','SNAPSHOT_FALLBACK'):
+            view=copy.deepcopy(self.view)
+            view['live_ingestion']={'enabled':True,'status':status,'last_success_at':None}
+            result=self.render(view=view)
+            self.assertEqual(result['en'].count('data-event-status="UNVERIFIED_NEWS"'),5)
+            self.assertNotIn('class="error"',result['en'])
+            self.assertIn('validated snapshot',result['en'])
+            self.assertIn('已驗證快照',result['zh'])
+
+    def test_new_article_has_original_english_without_fake_translation(self):
+        view=copy.deepcopy(self.view)
+        event=copy.deepcopy(view['events'][1])
+        event.update(event_id='new-eia-event',event_title='New EIA article in English',official_evidence_ids=[],official_evidence_count=0)
+        view['events'].append(event)
+        result=self.render(view=view)
+        self.assertIn('原文 / Original',result['zh'])
+        self.assertIn('New EIA article in English',result['zh'])
+        self.assertEqual(result['zh'].count('data-presentation-only="true"'),6)
 
 
 if __name__ == '__main__':
