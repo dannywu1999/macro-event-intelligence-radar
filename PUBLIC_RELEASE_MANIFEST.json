@@ -1,0 +1,17 @@
+{
+  "files": {
+    ".dockerignore": "82b7eac042e9f70ba44924832ece90eb28fd78b43e2270fcc2568ed904381d49",
+    ".gitignore": "5154e072c37ab68f36786b41bd017eec68903c7c5fa310d96d10c834bf787df0",
+    "Dockerfile": "bf032db3b17182fe59377cd9ac54b94f46193ae8f10575b092d48af5dbeee042",
+    "README.md": "376c452d9797c9f665812a2bdb542945de23a4d66b4df1112a0e9b5f50d55538",
+    "demo/radar_public/metadata.json": "017b918c59c6471038694dae409b19ccce403d26e37b4c3fedc7756b8c2e3b11",
+    "demo/radar_public/news/rss_headlines_eia_snapshot.csv": "1fdca35fe42e046f5eb71b3bfcef846c57ed28535d45666e5de06b92d29073cc",
+    "demo/radar_public/official-packet.json": "4a6226a6d8d52746d17c0ea60d6e4d8add479184eeaf59499e454ed97ede7cdc",
+    "docs/DEPLOYMENT.md": "6b35307be1a5a703afd2416ff96a5a56adff32221e5dcd15c65483f5d51e9d6e",
+    "tools/stage1b_historical_campaign/__init__.py": "d3e4afd1ab72526e89340a04f7cdabfeee19421118a10b82f507d56688d97cbd",
+    "tools/stage1b_historical_campaign/global_event_radar_read_adapter.py": "46aab7cd176466db7ecf38e67c6312dfa379fc2f7a947964b29e21cc2938eeae",
+    "tools/stage1b_historical_campaign/radar_web_server.py": "f0deb322928f335337f19affbc6380d12925335bf73e376084fcc8a7ce4ae76c",
+    "ui/macro_trading_os_unified_app_v1.html": "4bee467ee674f883f7561ece732c06e9dfbe1336ae7516f9a3677d8d227e4586"
+  },
+  "schema": "RADAR_PUBLIC_RELEASE_V1"
+}

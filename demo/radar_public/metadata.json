@@ -1,0 +1,40 @@
+{
+  "attribution": "Source: U.S. Energy Information Administration",
+  "canonical_event_ids": [
+    "canonical-event-v0-0d8a741d984e8031172fdd542aa922900059861147002506a122cca7ae227cd7",
+    "canonical-event-v0-3157198c23e7f1b75248aaeb68f4ab5b750adcfb54749b60143dcb231530abf3",
+    "canonical-event-v0-96e72feb1c94a85536bc1a69507ffb17a649364070d4b0c8b354301d0a5348eb",
+    "canonical-event-v0-a644e5746798f341ec1bbd3f8f2176050c2e9b3da24c9f87885fac10616e4bdf",
+    "canonical-event-v0-bbc91b1cedc12373e55244b2afe6ed824bea2620da2d90c360e0143e359150a6"
+  ],
+  "collector_observed_at": [
+    "2026-10-05T15:24:16Z"
+  ],
+  "counts": {
+    "articles": 5,
+    "canonical_events": 5,
+    "official_evidence": 1
+  },
+  "data_sha256": {
+    "news/rss_headlines_eia_snapshot.csv": "1fdca35fe42e046f5eb71b3bfcef846c57ed28535d45666e5de06b92d29073cc",
+    "official-packet.json": "4a6226a6d8d52746d17c0ea60d6e4d8add479184eeaf59499e454ed97ede7cdc"
+  },
+  "endorsement": false,
+  "live_ingestion_enabled": false,
+  "logo_included": false,
+  "mode": "PUBLIC DEMO - READ-ONLY SNAPSHOT",
+  "official_evidence_ids": [
+    "official-evidence-v0-5c83ee75917fa18ae10e723b491cafb7ec6a4dc832f5ab9a982ec7d1dd0f9a55"
+  ],
+  "schema": "RADAR_PUBLIC_SNAPSHOT_V1",
+  "source": "U.S. Energy Information Administration",
+  "source_time_range": {
+    "earliest": "2026-09-25T14:00:00Z",
+    "latest": "2026-10-05T14:00:00Z"
+  },
+  "source_url": "https://www.eia.gov/todayinenergy/",
+  "validated_eia_source_csv_sha256": [
+    "9db955882c92dffbd7c569da566dd95364eb1192cdcd88434cbe4466ca545a74"
+  ],
+  "validated_official_source_sha256": "4a6226a6d8d52746d17c0ea60d6e4d8add479184eeaf59499e454ed97ede7cdc"
+}

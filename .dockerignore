@@ -1,0 +1,16 @@
+# Only the read-only product files enter the Docker build context.
+**
+!Dockerfile
+!tools/
+!tools/stage1b_historical_campaign/
+!tools/stage1b_historical_campaign/__init__.py
+!tools/stage1b_historical_campaign/global_event_radar_read_adapter.py
+!tools/stage1b_historical_campaign/radar_web_server.py
+!ui/
+!ui/macro_trading_os_unified_app_v1.html
+!demo/
+!demo/radar_public/
+!demo/radar_public/news/
+!demo/radar_public/news/rss_headlines_eia_snapshot.csv
+!demo/radar_public/official-packet.json
+!demo/radar_public/metadata.json

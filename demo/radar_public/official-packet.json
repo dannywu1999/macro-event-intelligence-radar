@@ -1,0 +1,13 @@
+{
+  "official_confirmation": "OFFICIAL_CONFIRMED",
+  "authority_role": "FACT_AUTHORITY",
+  "authority_name": "U.S. Energy Information Administration",
+  "document_title": "Crude oil prices and refinery margins generally increased throughout the third quarter",
+  "official_source": "https://www.eia.gov/todayinenergy/detail.php?id=68245",
+  "official_document_reference": "https://www.eia.gov/todayinenergy/detail.php?id=68245",
+  "official_fact_proposition": "Crude oil prices and refinery margins generally increased throughout the third quarter",
+  "official_published_at": null,
+  "official_project_first_seen_at": "2026-10-06T03:15:25.730676Z",
+  "official_retrieved_at": "2026-10-06T03:15:25.752722Z",
+  "canonical_event_id": "canonical-event-v0-3157198c23e7f1b75248aaeb68f4ab5b750adcfb54749b60143dcb231530abf3"
+}
