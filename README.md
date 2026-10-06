@@ -24,6 +24,23 @@ This public snapshot has **no automated live ingestion**. It is not exhaustive
 global coverage and does not promise production uptime. This repository/demo
 **does not perform live trading**, price prediction or order execution.
 
+## Bilingual visual experience
+
+Choose **中文 / EN** in the header. Browser language selects the initial display;
+localStorage remembers the choice. The visual flow shows real 5 / 5 / 1 counts.
+The evidence-linked event is prioritized for display only, with its proposition
+expanded. News remains unverified. Details preserve original source text and IDs.
+
+`ui/radar_demo_translations.js` contains manually written presentation-only
+Traditional Chinese summaries for the fixed demo, keyed by event/evidence IDs.
+They are not official EIA translations and never enter the adapter or API.
+Original English remains the evidence of record.
+
+Focused offline tests: `python -B -m unittest discover -s tests -v`. Frontend
+behavior tests use Node.js without third-party packages; Node is test-only and
+is not a runtime/container dependency. The optional browser preview harness
+uses an already-installed Playwright/browser and only a temporary localhost server.
+
 ## Implementation
 
 Python 3.12.14 standard-library HTTP backend, one read-only Radar adapter,

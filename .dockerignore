@@ -8,6 +8,7 @@
 !tools/stage1b_historical_campaign/radar_web_server.py
 !ui/
 !ui/macro_trading_os_unified_app_v1.html
+!ui/radar_demo_translations.js
 !demo/
 !demo/radar_public/
 !demo/radar_public/news/

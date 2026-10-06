@@ -82,6 +82,15 @@ class Handler(BaseHTTPRequestHandler):
         path = unquote(urlsplit(self.path).path)
         if path == "/healthz":
             self.reply(200, {"status": "ok", "service": "macro-trading-os-radar"})
+        elif path == "/ui/radar_demo_translations.js":
+            # A fixed public presentation asset, never an evidence or API input.
+            data = (ROOT / "ui" / "radar_demo_translations.js").read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/javascript; charset=utf-8")
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Cache-Control", "no-cache")
+            self.end_headers()
+            self.wfile.write(data)
         elif path == "/api/app/radar":
             try:
                 self.reply(200, feed_view())

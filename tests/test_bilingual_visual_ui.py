@@ -1,0 +1,169 @@
+"""Actual served frontend JavaScript + isolated HTTP server; no external network."""
+import copy
+import json
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import unittest
+import test_public_root_route as http_fixture
+ROOT = http_fixture.ROOT
+
+NODE = shutil.which("node") or str(Path.home() / ".cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe")
+TARGET = "canonical-event-v0-3157198c23e7f1b75248aaeb68f4ab5b750adcfb54749b60143dcb231530abf3"
+
+
+class BilingualVisualTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        http_fixture.PublicRootRouteTests.setUpClass()
+        try:
+            cls.http = http_fixture.PublicRootRouteTests()
+            cls.html = cls.http.request("/")[2].decode("utf-8")
+            status, content_type, data = cls.http.request("/ui/radar_demo_translations.js")
+            assert status == 200 and content_type == "text/javascript; charset=utf-8"
+            cls.translations = data.decode("utf-8")
+            cls.view = json.loads(cls.http.request("/api/app/radar")[2])
+        except BaseException:
+            http_fixture.PublicRootRouteTests.tearDownClass()
+            raise
+
+    @classmethod
+    def tearDownClass(cls):
+        http_fixture.PublicRootRouteTests.tearDownClass()
+
+    def render(self, **options):
+        payload = dict(html=self.html, translations=self.translations, view=copy.deepcopy(self.view))
+        payload.update(options)
+        result = subprocess.run([NODE, str(ROOT / "tests/ui_render_harness.cjs")], input=json.dumps(payload),
+                                text=True, encoding="utf-8", capture_output=True, timeout=10)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return json.loads(result.stdout)
+
+    def test_browser_locale_and_real_language_clicks(self):
+        result = self.render(locale="zh-HK")
+        self.assertEqual(result["initial"]["language"], "zh-TW")
+        self.assertEqual(result["initial"]["title"], "全球事件雷達")
+        self.assertIn("新聞發現", result["zh"])
+        self.assertIn("Canonical Events", result["en"])
+        self.assertEqual(result["requests"], ["/api/app/radar"])
+        self.assertEqual(result["pressed"], ["false", "true"])
+        self.assertEqual(result["busy"], "false")
+
+    def test_saved_choice_and_storage_failure(self):
+        result = self.render(locale="zh-TW", storage={"radar-language": "en"})
+        self.assertEqual(result["initial"]["language"], "en")
+        self.assertEqual(result["storage"]["radar-language"], "en")
+        self.assertEqual(self.render(locale="zh-TW", storageBlocked=True)["initial"]["language"], "zh-TW")
+        self.assertEqual(self.render(locale="en-US", storage={"radar-language": "bogus"})["initial"]["language"], "en")
+
+    def test_five_title_and_one_fact_translations_are_presentation_only(self):
+        metadata = json.loads(self.translations.split("=", 1)[1].strip().rstrip(";"))
+        self.assertTrue(metadata["presentation_only"])
+        self.assertEqual(set(metadata["events"]), {e["event_id"] for e in self.view["events"]})
+        self.assertEqual(set(metadata["facts"]), {e["official_evidence_id"] for e in self.view["official_evidence"]})
+        result = self.render()
+        self.assertEqual(result["zh"].count('data-presentation-only="true"'), 6)
+        self.assertIn("中文翻譯僅供閱讀，原始英文為證據依據。", result["zh"])
+        self.assertIn("not official EIA translations", result["en"])
+        self.assertTrue(result["unchanged"])
+
+    def test_full_authoritative_english_is_exposed_in_both_languages(self):
+        result = self.render()
+        for html in (result["zh"], result["en"]):
+            for event in self.view["events"]:
+                self.assertIn(event["event_title"], html)
+                self.assertIn(event["event_id"], html)
+            evidence = self.view["official_evidence"][0]
+            for key in ("fact_proposition", "document_title", "official_evidence_id", "authority_name"):
+                self.assertIn(evidence[key], html)
+            self.assertIn('href="'+evidence["document_url"]+'"', html)
+            self.assertIn('rel="noopener noreferrer"', html)
+
+    def test_visual_flow_real_counts_and_status_legend(self):
+        result = self.render()
+        for html in (result["zh"], result["en"]):
+            self.assertIn('class="flow"', html)
+            for key, count in (("newsCount", 5), ("eventCount", 5), ("factCount", 1)):
+                self.assertIn(f'data-count="{key}">{count}</div>', html)
+            self.assertIn('class="legend"', html)
+            self.assertEqual(html.count('data-event-status="UNVERIFIED_NEWS"'), 5)
+            self.assertEqual(html.count('data-evidence-status="OFFICIAL_CONFIRMED"'), 1)
+        self.assertIn("not every claim", result["en"])
+        self.assertIn("不代表整則新聞或事件都被確認", result["zh"])
+
+    def test_evidenced_event_first_without_mutating_api_order(self):
+        view = copy.deepcopy(self.view)
+        view["events"].reverse()
+        result = self.render(view=view)
+        self.assertTrue(result["unchanged"])
+        self.assertEqual(re.findall(r'data-event-id="([^"]+)"', result["en"])[0], TARGET)
+        self.assertEqual(result["en"].count('<details class="official-panel" open>'), 1)
+        self.assertEqual(result["en"].count('class="no-evidence"'), 4)
+        self.assertIn("Display only", result["en"])
+        self.assertIn('<details class="provenance"><summary>Details', result["en"])
+
+    def test_unknown_publication_occurrence_and_health_are_not_fabricated(self):
+        result = self.render()
+        self.assertIn("Published: <time>Unknown</time>", result["en"])
+        self.assertIn("發布時間: <time>未知</time>", result["zh"])
+        self.assertIn("Event occurrence: Unknown", result["en"])
+        self.assertIn("Source health: <strong>Unknown</strong>", result["en"])
+        self.assertIsNone(self.view["official_evidence"][0]["published_at"])
+
+    def test_translation_and_demo_notice_are_demo_flag_only(self):
+        html = self.html.replace(",demoMode:true", "")
+        result = self.render(html=html)
+        self.assertNotIn('data-presentation-only="true"', result["zh"])
+        self.assertNotIn('class="demo-notice"', result["en"])
+        self.assertIn('class="demo-notice"', self.render()["en"])
+
+    def test_escaping_and_non_http_links_are_rejected(self):
+        view = copy.deepcopy(self.view)
+        attack = '<img src=x onerror="alert(1)">'
+        view["events"][0]["event_title"] = attack
+        view["events"][0]["source_names"] = [attack]
+        view["items"][0]["title"] = attack
+        view["items"][0]["news_source"]["url"] = "javascript:alert(1)"
+        view["official_evidence"][0]["fact_proposition"] = attack
+        view["official_evidence"][0]["document_url"] = 'javascript:alert(1)'
+        result = self.render(view=view)
+        for html in (result["en"], result["zh"]):
+            self.assertNotIn('<img', html)
+            self.assertIn('&lt;img src=x onerror=&quot;alert(1)&quot;&gt;', html)
+            self.assertNotIn('href="javascript:', html)
+
+    def test_empty_view_has_no_demo_events_or_invented_counts(self):
+        view = copy.deepcopy(self.view)
+        view.update(events=[], items=[], official_evidence=[], distinct_event_count=None, news_item_count=0)
+        result = self.render(view=view)
+        self.assertNotIn('data-event-id=', result["en"])
+        self.assertIn('data-count="eventCount">Unknown', result["en"])
+        self.assertIn('No records available.', result["en"])
+
+    def test_fetch_error_is_accessible_and_escaped_in_both_languages(self):
+        result = self.render(failure='<script>bad</script>')
+        for html in (result["zh"], result["en"]):
+            self.assertIn('role="alert"', html)
+            self.assertNotIn('<script>', html)
+        self.assertIn('無法載入唯讀新聞', result["zh"])
+
+    def test_responsive_and_keyboard_accessibility_structure(self):
+        for token in ('@media(min-width:1440px)', '@media(max-width:1100px)', '@media(max-width:650px)',
+                      'minmax(0,1fr)', 'grid-template-columns:1fr', ':focus-visible', 'aria-pressed=',
+                      'type="button"', '<nav ', '<main ', 'aria-hidden="true"'):
+            self.assertIn(token, self.html)
+        self.assertNotIn('MACRO TRADING OS', self.html)
+        self.assertNotIn('onclick=', self.html)
+        self.assertNotIn('https://', self.html.split('<style>')[1].split('</style>')[0])
+
+    def test_translation_not_loaded_by_adapter_and_container_contains_asset(self):
+        adapter = (ROOT / 'tools/stage1b_historical_campaign/global_event_radar_read_adapter.py').read_text(encoding='utf-8')
+        self.assertNotIn('RADAR_DEMO_TRANSLATIONS', adapter)
+        self.assertNotIn('radar_demo_translations', adapter)
+        self.assertIn('COPY ui/radar_demo_translations.js ui/radar_demo_translations.js', (ROOT/'Dockerfile').read_text())
+        self.assertIn('!ui/radar_demo_translations.js', (ROOT/'.dockerignore').read_text())
+
+
+if __name__ == '__main__':
+    unittest.main()
