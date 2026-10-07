@@ -8,7 +8,7 @@ let requests=[];
 const document={documentElement:{lang:'en'},title:'',getElementById(id){if(!nodes[id])throw Error('Unknown element '+id);return nodes[id]},querySelectorAll(selector){if(selector!=='[data-language]')throw Error('Unexpected selector');return buttons}};
 const context=vm.createContext({document,window:{},navigator:{language:input.locale||'en-US'},localStorage:{getItem(k){if(input.storageBlocked)throw Error('Storage denied');return storage[k]||null},setItem(k,v){if(input.storageBlocked)throw Error('Storage denied');storage[k]=v}},URL,Set,console,fetch:async path=>{requests.push(path);if(path!=='/api/app/radar')throw Error('Unexpected request');return {ok:!input.failure,status:input.failure?503:200,json:async()=>input.failure?{error:input.failure}:input.view}}});
 for(const match of input.html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)){
-  if(/src=/.test(match[1])){if(!match[1].includes('/ui/radar_demo_translations.js'))throw Error('Unexpected asset');vm.runInContext(input.translations,context)}
+  if(/src=/.test(match[1])){if(match[1].includes('/ui/radar_demo_translations.js'))vm.runInContext(input.translations,context);else if(match[1].includes('/ui/radar_interactive_map.js'))vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'../ui/radar_interactive_map.js'),'utf8'),context);else throw Error('Unexpected asset')}
   else vm.runInContext(match[2],context);
 }
 setImmediate(()=>{

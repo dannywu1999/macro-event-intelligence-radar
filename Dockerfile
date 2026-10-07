@@ -25,3 +25,9 @@ ENTRYPOINT ["python", "-m", "tools.stage1b_historical_campaign.radar_web_server"
 
 
 COPY tools/stage1b_historical_campaign/radar_context_intelligence.py tools/stage1b_historical_campaign/radar_context_intelligence.py
+
+COPY tools/stage1b_historical_campaign/radar_market_reality.py tools/stage1b_historical_campaign/radar_market_reality.py
+COPY ui/radar_interactive_map.js ui/radar_interactive_map.js
+COPY ui/vendor/maplibre-gl.js ui/vendor/maplibre-gl.js
+COPY ui/vendor/maplibre-gl.css ui/vendor/maplibre-gl.css
+COPY ui/vendor/MAPLIBRE-LICENSE.txt ui/vendor/MAPLIBRE-LICENSE.txt

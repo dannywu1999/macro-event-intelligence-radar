@@ -12,7 +12,7 @@ from pathlib import Path
 SCHEMA='RADAR_INTELLIGENCE_DB_V1'
 OBSERVATION='INTELLIGENCE_OBSERVATION_V1'
 ROOT=Path(__file__).resolve().parents[2]
-KINDS={'NEWS_ARTICLE','CANONICAL_EVENT_STATE','OFFICIAL_EVIDENCE','MARKET_EXPECTATION','SOURCE_STATE','CONTEXT_GEOGRAPHY'}
+KINDS={'NEWS_ARTICLE','CANONICAL_EVENT_STATE','OFFICIAL_EVIDENCE','MARKET_EXPECTATION','SOURCE_STATE','CONTEXT_GEOGRAPHY','MARKET_REALITY'}
 MAX_PAYLOAD=2*1024*1024
 class StoreError(ValueError):pass
 
@@ -50,6 +50,11 @@ def configured_db():
 
 def validate_payload_time(kind,payload,recorded_us):
  if not isinstance(payload,dict):raise StoreError('INVALID_OBSERVATION_PAYLOAD')
+ if kind=='MARKET_REALITY':
+  from .radar_market_reality import normalize_record,MarketRealityError
+  try:
+   if normalize_record(payload)!=payload:raise MarketRealityError('NONCANONICAL_MARKET_RECORD')
+  except (MarketRealityError,TypeError):raise StoreError('INVALID_MARKET_REALITY_RECORD')
  if kind=='CONTEXT_GEOGRAPHY':
   refs=payload.get('derived_from');fingerprint=payload.get('registry_fingerprint');context=payload.get('context_geography')
   if (payload.get('contract_version')!='EVENT_CONTEXT_V1' or not payload.get('canonical_event_id')
@@ -59,7 +64,7 @@ def validate_payload_time(kind,payload,recorded_us):
       or context.get('confidence') not in (None,'LOW','MEDIUM','HIGH')
       or not isinstance(payload.get('institution_context'),list) or not isinstance(payload.get('headline_explanation'),dict)):
    raise StoreError('INVALID_CONTEXT_PROVENANCE')
- keys={'NEWS_ARTICLE':('observed_at','discovered_at'),'CANONICAL_EVENT_STATE':('first_detected_at',),'OFFICIAL_EVIDENCE':('first_seen_at','retrieved_at'),'MARKET_EXPECTATION':('observed_at',)}.get(kind,())
+ keys={'NEWS_ARTICLE':('observed_at','discovered_at'),'CANONICAL_EVENT_STATE':('first_detected_at',),'OFFICIAL_EVIDENCE':('first_seen_at','retrieved_at'),'MARKET_EXPECTATION':('observed_at',),'MARKET_REALITY':('observed_at','event_observed_at')}.get(kind,())
  for key in keys:
   value=payload.get(key)
   if value is not None and time_value(value)[1]>recorded_us:raise StoreError('FUTURE_INPUT_KNOWLEDGE_REJECTED')
@@ -142,6 +147,7 @@ class IntelligenceStore:
    if event is not None and (not isinstance(event,str) or not event):raise StoreError('INVALID_EVENT_IDENTITY')
    validate_payload_time(kind,record['payload'],micros)
    if kind=='CONTEXT_GEOGRAPHY' and record['payload']['canonical_event_id']!=event:raise StoreError('CONTEXT_EVENT_BINDING_MISMATCH')
+   if kind=='MARKET_REALITY' and record['payload']['event_id']!=event:raise StoreError('MARKET_EVENT_BINDING_MISMATCH')
    payload=canonical(record['payload'])
    if len(payload.encode('utf-8'))>MAX_PAYLOAD:raise StoreError('PAYLOAD_TOO_LARGE')
    provenance=canonical(record.get('provenance') or {})
@@ -187,6 +193,8 @@ class IntelligenceStore:
   for market in view.get('market_expectations',[]):
    # One stable entity per provider market, with changing snapshot IDs in payload.
    add('MARKET_EXPECTATION',market['provider']+':'+market['market_id'],market,market.get('canonical_event_id'),None)
+  for record in view.get('market_reality_observations',[]):
+   add('MARKET_REALITY',record['observation_id'],record,record['event_id'],record['market_timestamp'])
   for group in ('sources','discovery_sources'):
    for name,state in sorted(view.get(group,{}).items()):add('SOURCE_STATE',group+':'+name,state)
   if view.get('expectation_provider') is not None:add('SOURCE_STATE','expectation_provider',view['expectation_provider'])
@@ -210,6 +218,7 @@ class IntelligenceStore:
   payload=json.loads(row['payload']);provenance=json.loads(row['provenance'])
   validate_payload_time(row['observation_kind'],payload,row['observed_us'])
   if row['observation_kind']=='CONTEXT_GEOGRAPHY' and payload.get('canonical_event_id')!=row['canonical_event_id']:raise StoreError('CONTEXT_EVENT_BINDING_MISMATCH')
+  if row['observation_kind']=='MARKET_REALITY' and payload.get('event_id')!=row['canonical_event_id']:raise StoreError('MARKET_EVENT_BINDING_MISMATCH')
   identity='observation-v1-'+sha(canonical([OBSERVATION,row['observation_kind'],row['entity_id'],row['canonical_event_id'],row['observed_at'],row['source_timestamp'],row['payload_sha256'],row['provenance']]))
   if identity!=row['observation_id'] or time_value(row['observed_at'])[1]!=row['observed_us']:raise StoreError('OBSERVATION_INTEGRITY_FAILED')
   return {**dict(row),'payload':payload,'provenance':provenance}

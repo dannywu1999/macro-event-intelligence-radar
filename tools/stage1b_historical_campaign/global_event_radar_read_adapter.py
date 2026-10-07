@@ -52,6 +52,7 @@ class EvidencePaths:
     source_health: Path | None = None
     geography: Path | None = None
     expectation_links: Path | None = None
+    market_reality: Path | None = None
 
     @classmethod
     def from_environment(cls) -> "EvidencePaths":
@@ -77,6 +78,7 @@ class EvidencePaths:
             source_health=configured("GLOBAL_EVENT_RADAR_SOURCE_HEALTH_PATH"),
             geography=configured("GLOBAL_EVENT_RADAR_GEOGRAPHY_PATH"),
             expectation_links=configured("GLOBAL_EVENT_RADAR_EXPECTATION_LINKS_PATH"),
+            market_reality=configured("GLOBAL_EVENT_RADAR_MARKET_REALITY_PATH"),
         )
 
 
@@ -784,7 +786,7 @@ def build_radar_view(
     from tools.stage1b_historical_campaign.radar_context_intelligence import enrich_events
     expectation_projection['events'] = enrich_events(expectation_projection['events'], items)
     status = "AVAILABLE" if items else "EMPTY"
-    return {
+    view = {
         "contract_version": CONTRACT_VERSION, "read_only": True, "status": status,
         "reason": None if items else "NO_NEWS_DISCOVERY_RECORDS",
         "items": items, "item_count": len(items), "news_item_count": len(items), **canonical_events,
@@ -795,6 +797,8 @@ def build_radar_view(
         "health_status": _overall_health(source_health, news_rows),
         "source_health": source_health, "sources": sources,
     }
+    from tools.stage1b_historical_campaign.radar_market_reality import add_projection
+    return add_projection(view, paths.market_reality, as_of=_iso(current))
 
 
 def build_event_geographies(events: list[dict[str, Any]], metadata: Mapping[str, Any] | None = None) -> dict[str, Any]:

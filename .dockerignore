@@ -30,3 +30,10 @@
 !tools/stage1b_historical_campaign/radar_reality_replay.py
 
 !tools/stage1b_historical_campaign/radar_context_intelligence.py
+
+!ui/vendor/
+!tools/stage1b_historical_campaign/radar_market_reality.py
+!ui/radar_interactive_map.js
+!ui/vendor/maplibre-gl.js
+!ui/vendor/maplibre-gl.css
+!ui/vendor/MAPLIBRE-LICENSE.txt

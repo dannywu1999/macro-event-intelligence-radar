@@ -17,6 +17,7 @@ def replay_event_as_of(store,event_id,as_of,*,internal=False):
  result=dict(contract_version=CONTRACT,canonical_event_id=event_id,as_of=timestamp,time_basis='SYSTEM_RECORDED_TIME',news_observations=[],official_evidence_observations=[],market_expectation_observations=[],source_states=kind('SOURCE_STATE'),reconstructed_macroview=None,unknowns=[],observation_ids=[],replay_status='NO_OBSERVATIONS')
  projection=None
  result['context_observations']=[]
+ result['market_reality_observations']=[]
  if states:
   event=deepcopy(states[-1]['payload'])
   # Never re-infer historical context using today's registry or current files.
@@ -40,11 +41,19 @@ def replay_event_as_of(store,event_id,as_of,*,internal=False):
   event['market_expectation_ids']=[r['payload']['expectation_id'] for r in markets]
   event.pop('timeline',None);event.pop('status_summary',None)
   projection=dict(events=[event],items=[deepcopy(r['payload']) for r in news],official_evidence=[deepcopy(r['payload']) for r in facts],market_expectations=[deepcopy(r['payload']) for r in markets])
+  from .radar_market_reality import project_snapshot
+  reality_rows=kind('MARKET_REALITY')
+  anchor=min(r['observed_at'] for r in observations if r['observation_kind']=='CANONICAL_EVENT_STATE' and r['canonical_event_id']==event_id)
+  # Knowledge is bounded by ledger registration, never a backfilled source time.
+  reality_records=[{**deepcopy(r['payload']),'observed_at':r['observed_at']} for r in reality_rows]
+  event['market_reality']=project_snapshot(event_id,anchor,reality_records,as_of=timestamp,
+      source_status='AVAILABLE' if reality_rows else 'NO_POINT_IN_TIME_SOURCE')
   result.update(replay_status='AVAILABLE')
-  selected=states+news+facts+markets+contexts+kind('SOURCE_STATE');selected.sort(key=lambda r:(r['observed_us'],r['observation_id']))
+  selected=states+news+facts+markets+contexts+reality_rows+kind('SOURCE_STATE');selected.sort(key=lambda r:(r['observed_us'],r['observation_id']))
   active_ids={r['observation_id'] for r in selected}
   history=[{**r,'active_at_as_of':r['observation_id'] in active_ids} for r in observations if r['canonical_event_id']==event_id or r['observation_kind']=='SOURCE_STATE']
   result['context_observations']=[r for r in history if r['observation_kind']=='CONTEXT_GEOGRAPHY']
+  result['market_reality_observations']=[r for r in history if r['observation_kind']=='MARKET_REALITY']
   result['news_observations']=[r for r in history if r['observation_kind']=='NEWS_ARTICLE']
   result['official_evidence_observations']=[r for r in history if r['observation_kind']=='OFFICIAL_EVIDENCE']
   result['market_expectation_observations']=[r for r in history if r['observation_kind']=='MARKET_EXPECTATION']

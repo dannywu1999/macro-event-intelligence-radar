@@ -110,6 +110,14 @@ class Handler(BaseHTTPRequestHandler):
         path = unquote(urlsplit(self.path).path)
         if path == "/healthz":
             self.reply(200, {"status": "ok", "service": "macro-trading-os-radar"})
+        elif path in {"/ui/radar_interactive_map.js", "/ui/vendor/maplibre-gl.js", "/ui/vendor/maplibre-gl.css", "/ui/vendor/MAPLIBRE-LICENSE.txt"}:
+            # Exact public-safe assets only; no directory traversal / file API.
+            data = (ROOT / path.lstrip('/')).read_bytes()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/css; charset=utf-8" if path.endswith('.css') else "text/javascript; charset=utf-8" if path.endswith('.js') else "text/plain; charset=utf-8")
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("Cache-Control", "public, max-age=3600")
+            self.end_headers();self.wfile.write(data)
         elif path == "/ui/radar_demo_translations.js":
             data = (ROOT / "ui/radar_demo_translations.js").read_bytes()
             self.send_response(200)

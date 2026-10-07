@@ -1,0 +1,86 @@
+{
+  "schema": "MARKET_REALITY_INPUT_V0",
+  "synthetic": true,
+  "observations": [
+    {
+      "event_id": "canonical-event-v0-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "event_observed_at": "2026-10-07T10:00:00Z",
+      "symbol": "SPY",
+      "value_unit": "PRICE",
+      "market_timestamp": "2026-10-07T09:59:00Z",
+      "observed_at": "2026-10-07T09:59:00Z",
+      "price_or_level": 500,
+      "time_basis": "SYSTEM_RECORDED_TIME",
+      "source": {
+        "name": "Synthetic offline fixture",
+        "url": "https://example.test/market"
+      },
+      "source_observation_id": "SPY-09:59",
+      "previous_close": null
+    },
+    {
+      "event_id": "canonical-event-v0-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "event_observed_at": "2026-10-07T10:00:00Z",
+      "symbol": "SPY",
+      "value_unit": "PRICE",
+      "market_timestamp": "2026-10-07T10:05:00Z",
+      "observed_at": "2026-10-07T10:05:00Z",
+      "price_or_level": 499,
+      "time_basis": "SYSTEM_RECORDED_TIME",
+      "source": {
+        "name": "Synthetic offline fixture",
+        "url": "https://example.test/market"
+      },
+      "source_observation_id": "SPY-10:05",
+      "previous_close": null
+    },
+    {
+      "event_id": "canonical-event-v0-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "event_observed_at": "2026-10-07T10:00:00Z",
+      "symbol": "SPY",
+      "value_unit": "PRICE",
+      "market_timestamp": "2026-10-07T10:30:00Z",
+      "observed_at": "2026-10-07T10:30:00Z",
+      "price_or_level": 497,
+      "time_basis": "SYSTEM_RECORDED_TIME",
+      "source": {
+        "name": "Synthetic offline fixture",
+        "url": "https://example.test/market"
+      },
+      "source_observation_id": "SPY-10:30",
+      "previous_close": null
+    },
+    {
+      "event_id": "canonical-event-v0-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "event_observed_at": "2026-10-07T10:00:00Z",
+      "symbol": "VIX",
+      "value_unit": "INDEX_LEVEL",
+      "market_timestamp": "2026-10-07T09:59:00Z",
+      "observed_at": "2026-10-07T09:59:00Z",
+      "price_or_level": 15,
+      "time_basis": "SYSTEM_RECORDED_TIME",
+      "source": {
+        "name": "Synthetic offline fixture",
+        "url": "https://example.test/market"
+      },
+      "source_observation_id": "VIX-09:59",
+      "previous_close": null
+    },
+    {
+      "event_id": "canonical-event-v0-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "event_observed_at": "2026-10-07T10:00:00Z",
+      "symbol": "VIX",
+      "value_unit": "INDEX_LEVEL",
+      "market_timestamp": "2026-10-07T10:05:00Z",
+      "observed_at": "2026-10-07T10:05:00Z",
+      "price_or_level": 16,
+      "time_basis": "SYSTEM_RECORDED_TIME",
+      "source": {
+        "name": "Synthetic offline fixture",
+        "url": "https://example.test/market"
+      },
+      "source_observation_id": "VIX-10:05",
+      "previous_close": null
+    }
+  ]
+}
