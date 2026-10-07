@@ -1,6 +1,7 @@
 """Headless read-only serving branch of the unified app; standard library only.
 
-No research/control-plane imports, materialization, background refresh, or writes.
+No research/control-plane imports or materialization. Optional process-owned
+acquisition and intelligence recording never introduce a public write API.
 The sole Radar adapter and the existing unified HTML remain the product sources.
 """
 from __future__ import annotations
@@ -15,7 +16,8 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Sequence
-from urllib.parse import unquote, urlsplit
+from urllib.parse import unquote, urlsplit, parse_qs
+import re
 
 from tools.stage1b_historical_campaign import global_event_radar_read_adapter as event_radar
 
@@ -116,6 +118,33 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Cache-Control", "no-cache")
             self.end_headers()
             self.wfile.write(data)
+        elif path == "/api/app/replay":
+            try:
+                raw_query = urlsplit(self.path).query
+                if len(raw_query) > 4096:
+                    raise ValueError("QUERY_TOO_LARGE")
+                query = parse_qs(raw_query, keep_blank_values=True, max_num_fields=4)
+            except ValueError:
+                self.reply(400, {"error": "INVALID_REPLAY_REQUEST", "read_only": True})
+                return
+            if (set(query) != {"event_id", "as_of"} or any(len(v) != 1 for v in query.values())
+                    or not re.fullmatch(r"canonical-event-v0-[a-f0-9]{64}", query.get("event_id", [""])[0])):
+                self.reply(400, {"error": "INVALID_REPLAY_REQUEST", "read_only": True})
+                return
+            from tools.stage1b_historical_campaign.radar_intelligence_store import IntelligenceStore, StoreError, time_value, configured_db
+            from tools.stage1b_historical_campaign.radar_reality_replay import replay_event_as_of
+            try:
+                time_value(query["as_of"][0])
+            except StoreError:
+                self.reply(400, {"error": "INVALID_REPLAY_AS_OF", "read_only": True})
+                return
+            try:
+                db_path = configured_db()
+                if db_path is None:
+                    raise StoreError("STORE_NOT_CONFIGURED")
+                self.reply(200, replay_event_as_of(IntelligenceStore(db_path), query["event_id"][0], query["as_of"][0]))
+            except (StoreError, OSError, ValueError):
+                self.reply(503, {"error": "INTELLIGENCE_REPLAY_UNAVAILABLE", "read_only": True})
         elif path == "/api/app/radar":
             try:
                 self.reply(200, feed_view(getattr(self.server, "live_ingestion", None), getattr(self.server, "expectation_sensor", None)))
@@ -176,6 +205,17 @@ def serve(open_browser: bool = False, *, radar_only: bool = True) -> None:
             if server.live_ingestion is not None:
                 server.live_ingestion.close()
             raise
+    server.intelligence_recorder = None
+    if os.environ.get("RADAR_PERSIST_INTELLIGENCE", "").strip() == "1":
+        from tools.stage1b_historical_campaign.radar_intelligence_store import IntelligenceRecorder, configured_db, StoreError
+        try:
+            server.intelligence_recorder = IntelligenceRecorder(configured_db(),
+                lambda: feed_view(server.live_ingestion, server.expectation_sensor),
+                interval=int(os.environ.get("RADAR_INTELLIGENCE_RECORD_SECONDS", "60")))
+        except (StoreError, OSError, ValueError):
+            # Storage is additive. Neither startup failure nor a recorder failure
+            # makes current News/Evidence serving depend on database availability.
+            print("RADAR_INTELLIGENCE_STATUS=UNAVAILABLE", flush=True)
     print(f"RADAR_LISTENING={HOST}:{server.server_port}", flush=True)
     print("RADAR READ-ONLY | NO LEGACY RUNTIME", flush=True)
     if open_browser:
@@ -196,11 +236,15 @@ def serve(open_browser: bool = False, *, radar_only: bool = True) -> None:
             server.live_ingestion.start()
         if getattr(server, "expectation_sensor", None) is not None:
             server.expectation_sensor.start()
+        if getattr(server, "intelligence_recorder", None) is not None:
+            server.intelligence_recorder.start()
         server.serve_forever()
     except KeyboardInterrupt:
         pass
     finally:
         server.server_close()
+        if getattr(server, "intelligence_recorder", None) is not None:
+            server.intelligence_recorder.close()
         if getattr(server, "expectation_sensor", None) is not None:
             server.expectation_sensor.close()
         if getattr(server, "live_ingestion", None) is not None:

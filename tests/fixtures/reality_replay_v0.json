@@ -1,0 +1,34 @@
+{
+  "synthetic": true,
+  "contract_version": "REALITY_REPLAY_TEST_FIXTURE_V0",
+  "articles": [
+    {
+      "observed_time": "2026-10-07T09:00:00Z",
+      "event_time": "2026-10-07T08:00:00Z",
+      "headline_or_text": "Synthetic EIA discovery",
+      "source_name": "EIA",
+      "source_url": "https://example.test/eia"
+    },
+    {
+      "observed_time": "2026-10-07T09:00:00Z",
+      "event_time": "2026-10-07T08:00:00Z",
+      "headline_or_text": "Synthetic ECB discovery",
+      "source_name": "ECB",
+      "source_url": "https://example.test/ecb"
+    },
+    {
+      "observed_time": "2026-10-07T09:00:00Z",
+      "event_time": "2026-10-07T08:00:00Z",
+      "headline_or_text": "Synthetic News only discovery",
+      "source_name": "News only",
+      "source_url": "https://example.test/news-only"
+    },
+    {
+      "observed_time": "2026-10-07T09:00:00Z",
+      "event_time": "2026-10-07T08:00:00Z",
+      "headline_or_text": "Synthetic Market fixture discovery",
+      "source_name": "Market fixture",
+      "source_url": "https://example.test/market"
+    }
+  ]
+}

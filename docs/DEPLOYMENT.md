@@ -219,3 +219,9 @@ with deterministic IDs/hashes. Later source changes cannot mutate old values.
 Facts are `NEWS_ONLY` or `PARTIAL_OFFICIAL_EVIDENCE`; expectation snapshots remain
 independent. Unknowns stay explicit. There is no write endpoint, archive, decision,
 market direction or trade authorization. The deployment remains read-only.
+
+## A6 local replay foundation (not deployed)
+
+Persistence is opt-in and disabled by default. Current Radar does not depend on
+SQLite. See [RADAR_INTELLIGENCE_STORE.md](RADAR_INTELLIGENCE_STORE.md) for time semantics, read-only replay and storage configuration. Do not
+enable public persistence before durable cloud storage is separately reviewed.

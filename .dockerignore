@@ -24,3 +24,7 @@
 !tools/stage1b_historical_campaign/radar_market_expectations.py
 
 !tools/stage1b_historical_campaign/radar_macroview_freeze.py
+
+!tools/stage1b_historical_campaign/radar_intelligence_store.py
+
+!tools/stage1b_historical_campaign/radar_reality_replay.py

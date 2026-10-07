@@ -1,0 +1,17 @@
+// Real browser drives the actual read-only endpoint, no mocked responses.
+const fs=require('node:fs'),assert=require('node:assert/strict');const input=JSON.parse(fs.readFileSync(0,'utf8'));const {chromium}=require(input.playwright);
+(async()=>{const browser=await chromium.launch({executablePath:input.browser,headless:true,args:['--disable-background-networking','--disable-component-update','--disable-sync','--no-first-run']});let checks=0;
+try{for(const locale of ['en-US','zh-TW'])for(const width of [375,430,1024,1440]){
+ const context=await browser.newContext({locale,viewport:{width,height:1000}});await context.route('**/*',route=>route.request().url().startsWith(input.origin+'/')?route.continue():route.abort());const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(String(e)));
+ await page.goto(input.origin+'/#/feed');try{await page.locator('.event-card').first().waitFor({timeout:5000})}catch(e){console.error('PAGE_ERRORS',errors,'BODY',await page.locator('body').innerText());throw e}assert.equal(await page.locator('.official-record').count(),2);assert.equal(await page.locator('.event-card').count(),input.events);assert.equal(await page.locator('.reality-replay').count(),input.events);
+ for(const language of ['en','zh-TW']){
+  await page.locator('[data-language="'+language+'"]').click();const panel=page.locator('.event-card[data-event-id="'+input.eventId+'"]').locator('.reality-replay');if(!await panel.evaluate(e=>e.open)){await panel.locator('summary').focus();await page.keyboard.press('Enter')}
+  assert.match(await panel.innerText(),language==='en'?/at or before the selected time/:/指定時間以前/);const field=panel.locator('input');assert.equal(await panel.locator('label').getAttribute('for'),await field.getAttribute('id'));
+  await field.fill(input.before);await panel.locator('button').focus();await page.keyboard.press('Enter');await panel.locator('.replay-result').getByText(language==='en'?'No event observations existed in the ledger at this time.':'此時 ledger 尚無該事件觀測。',{exact:true}).waitFor();
+  await panel.locator('input').fill(input.asOf);await panel.locator('button').click();await panel.locator('.replay-result .state-code').waitFor();const result=await panel.locator('.replay-result').innerText();assert.match(result,/AVAILABLE/);assert.match(result,language==='en'?/Observed by system/:/系統觀測時間/);assert.match(result,language==='en'?/Partial proposition-level official evidence/:/部分命題具有官方證據/);assert.match(result,language==='en'?/No linked market expectation/:/尚無已連結市場預期/);
+  assert.equal(await panel.locator('.replay-result img').count(),0);assert.equal(await page.evaluate(()=>window.BAD||false),false);assert.match(result,/<img src=x/);
+  await panel.locator('input').fill('invalid');await panel.locator('button').click();await panel.locator('.replay-result').getByText(/INVALID_REPLAY_AS_OF/).waitFor();assert.equal(await page.locator('.official-record').count(),2);
+  const bounds=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth}));assert.ok(bounds.scroll<=bounds.width+1,JSON.stringify(bounds));assert.equal(await panel.locator('.replay-result').getAttribute('aria-live'),'polite');checks++;
+ }
+ assert.deepEqual(errors,[]);await context.close();
+}}finally{await browser.close()}console.log(JSON.stringify({real_browser:'Edge Chromium',groups:checks,all_pass:true,network:'loopback only',keyboard:'PASS',escaping:'PASS'}))})().catch(e=>{console.error(e);process.exit(1)});
