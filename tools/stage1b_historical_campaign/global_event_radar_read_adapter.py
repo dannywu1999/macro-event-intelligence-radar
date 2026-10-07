@@ -781,6 +781,8 @@ def build_radar_view(
         except ExpectationError:
             continue
     expectation_projection = project_market_records(geography_projection["events"], expectation_rows, paths.expectation_links)
+    from tools.stage1b_historical_campaign.radar_context_intelligence import enrich_events
+    expectation_projection['events'] = enrich_events(expectation_projection['events'], items)
     status = "AVAILABLE" if items else "EMPTY"
     return {
         "contract_version": CONTRACT_VERSION, "read_only": True, "status": status,

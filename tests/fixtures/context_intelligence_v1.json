@@ -1,0 +1,50 @@
+{
+  "synthetic": true,
+  "cases": [
+    {
+      "name": "ecb",
+      "headline": "ECB amends monetary policy implementation guidelines as part of regular review",
+      "region": "euro-area"
+    },
+    {
+      "name": "eia",
+      "headline": "EIA reports crude oil inventory changes",
+      "region": "united-states"
+    },
+    {
+      "name": "taiwan",
+      "headline": "Taiwan exports increase",
+      "region": "taiwan"
+    },
+    {
+      "name": "red-sea",
+      "headline": "Shipping disrupted in Red Sea",
+      "region": "red-sea"
+    },
+    {
+      "name": "persian-gulf",
+      "headline": "Shipping disrupted in Persian Gulf",
+      "region": "persian-gulf"
+    },
+    {
+      "name": "multi",
+      "headline": "US and China discuss trade policy",
+      "region": null
+    },
+    {
+      "name": "global",
+      "headline": "Global energy demand grows",
+      "region": "global"
+    },
+    {
+      "name": "unknown",
+      "headline": "New operating procedures announced",
+      "region": null
+    },
+    {
+      "name": "institution",
+      "headline": "ECB reviews framework",
+      "region": "euro-area"
+    }
+  ]
+}

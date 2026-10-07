@@ -225,3 +225,12 @@ market direction or trade authorization. The deployment remains read-only.
 Persistence is opt-in and disabled by default. Current Radar does not depend on
 SQLite. See [RADAR_INTELLIGENCE_STORE.md](RADAR_INTELLIGENCE_STORE.md) for time semantics, read-only replay and storage configuration. Do not
 enable public persistence before durable cloud storage is separately reviewed.
+
+## A7 context intelligence
+
+See [RADAR_CONTEXT_INTELLIGENCE.md](RADAR_CONTEXT_INTELLIGENCE.md) for event/context/institution separation and map semantics. Public persistence remains disabled.
+
+The public Git release manifest separates `files` (reviewed working-tree bytes)
+from `git_clean_files` (expected committed bytes after Git line-ending filtering).
+The prepared publication guard verifies both; source snapshots are not rewritten
+and no Git/system configuration is changed.

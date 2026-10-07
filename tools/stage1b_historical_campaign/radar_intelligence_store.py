@@ -12,7 +12,7 @@ from pathlib import Path
 SCHEMA='RADAR_INTELLIGENCE_DB_V1'
 OBSERVATION='INTELLIGENCE_OBSERVATION_V1'
 ROOT=Path(__file__).resolve().parents[2]
-KINDS={'NEWS_ARTICLE','CANONICAL_EVENT_STATE','OFFICIAL_EVIDENCE','MARKET_EXPECTATION','SOURCE_STATE'}
+KINDS={'NEWS_ARTICLE','CANONICAL_EVENT_STATE','OFFICIAL_EVIDENCE','MARKET_EXPECTATION','SOURCE_STATE','CONTEXT_GEOGRAPHY'}
 MAX_PAYLOAD=2*1024*1024
 class StoreError(ValueError):pass
 
@@ -50,6 +50,15 @@ def configured_db():
 
 def validate_payload_time(kind,payload,recorded_us):
  if not isinstance(payload,dict):raise StoreError('INVALID_OBSERVATION_PAYLOAD')
+ if kind=='CONTEXT_GEOGRAPHY':
+  refs=payload.get('derived_from');fingerprint=payload.get('registry_fingerprint');context=payload.get('context_geography')
+  if (payload.get('contract_version')!='EVENT_CONTEXT_V1' or not payload.get('canonical_event_id')
+      or not isinstance(refs,list) or not refs or len(refs)>512 or not all(isinstance(r,str) and r for r in refs)
+      or not isinstance(fingerprint,str) or len(fingerprint)!=64 or any(c not in '0123456789abcdef' for c in fingerprint)
+      or not isinstance(context,dict) or context.get('method') not in ('UNKNOWN','MULTI_REGION','EXPLICIT_CONTEXT_MENTION','MENTION_DERIVED','INSTITUTION_JURISDICTION')
+      or context.get('confidence') not in (None,'LOW','MEDIUM','HIGH')
+      or not isinstance(payload.get('institution_context'),list) or not isinstance(payload.get('headline_explanation'),dict)):
+   raise StoreError('INVALID_CONTEXT_PROVENANCE')
  keys={'NEWS_ARTICLE':('observed_at','discovered_at'),'CANONICAL_EVENT_STATE':('first_detected_at',),'OFFICIAL_EVIDENCE':('first_seen_at','retrieved_at'),'MARKET_EXPECTATION':('observed_at',)}.get(kind,())
  for key in keys:
   value=payload.get(key)
@@ -114,7 +123,7 @@ class IntelligenceStore:
   if not self.path.is_file():raise StoreError('STORE_UNAVAILABLE')
   try:
    db=sqlite3.connect(self.path.as_uri()+('?mode=rw' if write else '?mode=ro'),uri=True,timeout=3)
-   db.row_factory=sqlite3.Row;db.execute('PRAGMA busy_timeout=3000');db.execute('PRAGMA foreign_keys=ON')
+   db.row_factory=sqlite3.Row;db.execute('PRAGMA busy_timeout=3000');db.execute('PRAGMA foreign_keys=ON');db.execute('PRAGMA recursive_triggers=ON')
    if not write:db.execute('PRAGMA query_only=ON')
    try:
     yield db
@@ -132,6 +141,7 @@ class IntelligenceStore:
    if kind not in KINDS or not isinstance(entity,str) or not entity or len(entity)>2048:raise StoreError('INVALID_OBSERVATION_IDENTITY')
    if event is not None and (not isinstance(event,str) or not event):raise StoreError('INVALID_EVENT_IDENTITY')
    validate_payload_time(kind,record['payload'],micros)
+   if kind=='CONTEXT_GEOGRAPHY' and record['payload']['canonical_event_id']!=event:raise StoreError('CONTEXT_EVENT_BINDING_MISMATCH')
    payload=canonical(record['payload'])
    if len(payload.encode('utf-8'))>MAX_PAYLOAD:raise StoreError('PAYLOAD_TOO_LARGE')
    provenance=canonical(record.get('provenance') or {})
@@ -151,7 +161,7 @@ class IntelligenceStore:
      latest=db.execute('SELECT * FROM observations WHERE observation_kind=? AND entity_id=? ORDER BY observed_us DESC,observation_id DESC LIMIT 1',(row[1],row[2])).fetchone()
      if latest:
       if row[5]<latest['observed_us']:raise StoreError('BACKDATED_OBSERVATION_REJECTED')
-      if row[8]==latest['payload_sha256'] and row[6]==latest['source_timestamp'] and row[9]==latest['provenance']:continue
+      if row[3]==latest['canonical_event_id'] and row[8]==latest['payload_sha256'] and row[6]==latest['source_timestamp'] and row[9]==latest['provenance']:continue
       if row[5]==latest['observed_us']:raise StoreError('CONFLICTING_SAME_TIME_OBSERVATION')
      result=db.execute('INSERT OR IGNORE INTO observations VALUES (?,?,?,?,?,?,?,?,?,?,?)',row)
      if result.rowcount:inserted.append(row[0])
@@ -169,7 +179,10 @@ class IntelligenceStore:
   def add(kind,entity,payload,event=None,source=None):
    records.append(dict(observation_kind=kind,entity_id=entity,canonical_event_id=event,payload=deepcopy(payload),source_timestamp=source,provenance={'input_contract':view.get('contract_version'),'time_basis':'SYSTEM_RECORDED_TIME','imported_observation_time_not_backdated':True}))
   for item in view.get('items',[]):add('NEWS_ARTICLE',item['article_reference'],item,event_by_article.get(item['article_reference']),item.get('reported_at'))
-  for event in view.get('events',[]):add('CANONICAL_EVENT_STATE',event['event_id'],event,event['event_id'])
+  for event in view.get('events',[]):
+   add('CANONICAL_EVENT_STATE',event['event_id'],event,event['event_id'])
+   if event.get('context_contract')=='EVENT_CONTEXT_V1':
+    add('CONTEXT_GEOGRAPHY',event['event_id'],dict(contract_version='EVENT_CONTEXT_V1',canonical_event_id=event['event_id'],derived_from=list(event['article_references']),context_geography=event['context_geography'],institution_context=event['institution_context'],headline_explanation=event['headline_explanation'],registry_fingerprint=event['context_registry_fingerprint']),event['event_id'])
   for fact in view.get('official_evidence',[]):add('OFFICIAL_EVIDENCE',fact['official_evidence_id'],fact,fact.get('canonical_event_id'),fact.get('published_at'))
   for market in view.get('market_expectations',[]):
    # One stable entity per provider market, with changing snapshot IDs in payload.
@@ -196,6 +209,7 @@ class IntelligenceStore:
   if row['contract_version']!=OBSERVATION or sha(row['payload'])!=row['payload_sha256']:raise StoreError('OBSERVATION_INTEGRITY_FAILED')
   payload=json.loads(row['payload']);provenance=json.loads(row['provenance'])
   validate_payload_time(row['observation_kind'],payload,row['observed_us'])
+  if row['observation_kind']=='CONTEXT_GEOGRAPHY' and payload.get('canonical_event_id')!=row['canonical_event_id']:raise StoreError('CONTEXT_EVENT_BINDING_MISMATCH')
   identity='observation-v1-'+sha(canonical([OBSERVATION,row['observation_kind'],row['entity_id'],row['canonical_event_id'],row['observed_at'],row['source_timestamp'],row['payload_sha256'],row['provenance']]))
   if identity!=row['observation_id'] or time_value(row['observed_at'])[1]!=row['observed_us']:raise StoreError('OBSERVATION_INTEGRITY_FAILED')
   return {**dict(row),'payload':payload,'provenance':provenance}

@@ -51,12 +51,29 @@ def main():
    view=json.loads(request('/api/app/radar')[1]);assert len(view['official_evidence'])==2;assert len(view['market_expectations'])>0;assert all(e['expectation_state']=='NONE' for e in view['macroview_previews']);assert view['expectation_provider']['enabled'] is False
    assert request('/api/app/replay?event_id='+event_id+'&as_of='+recorded)[0]==200
    assert request('/api/app/replay?event_id=bad&as_of=bad')[0]==400
-   print('REAL_STATE_INGESTION=28_ARTICLES_28_EVENTS_2_OFFICIAL_20_UNLINKED; RESTART_FREEZE_PASS=true')
+   print('REAL_STATE_INGESTION=28_ARTICLES_28_EVENTS_2_OFFICIAL_20_UNLINKED; RESTART_FREEZE_PASS=true');print('A7_REAL_COUNTS='+json.dumps(dict(total_events=len(view['events']),verified_event_geography=sum(e['event_geography']['status']=='KNOWN' for e in view['events']),context_geography=sum(e['context_geography']['status']=='INFERRED' for e in view['events']),institution_context=sum(bool(e['institution_context']) for e in view['events']),unknown_context=sum(e['context_geography']['status']=='UNKNOWN' for e in view['events']))))
    for method in ['POST','PUT','PATCH','DELETE']:assert request('/api/app/radar',method)[0]==405
    for path in ['/api/app/refresh','/api/app/status','/api/admin']:assert request(path)[0]==404
    node=Path.home()/'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe';playwright=node.parent.parent/'node_modules/playwright';browser=Path(os.environ.get('ProgramFiles(x86)',''))/'Microsoft/Edge/Application/msedge.exe'
-   config=dict(eventId=event_id,before=before_time,asOf=test_time,origin='http://127.0.0.1:'+str(port),events=len(view['events']),unlinked=len(view['market_expectations']),links=sum(bool(r['market_url']) for r in view['market_expectations']),ecbId=json.loads((root/'demo/radar_public/ecb-official-packet.json').read_text())['canonical_event_id'],playwright=str(playwright),browser=str(browser))
+   config=dict(screenshot=str(Path(tempfile.gettempdir())/'a7-world-map-review.png'),eventId=event_id,before=before_time,asOf=test_time,origin='http://127.0.0.1:'+str(port),events=len(view['events']),unlinked=len(view['market_expectations']),links=sum(bool(r['market_url']) for r in view['market_expectations']),ecbId=json.loads((root/'demo/radar_public/ecb-official-packet.json').read_text())['canonical_event_id'],playwright=str(playwright),browser=str(browser))
+   config['europeId']=next(e['event_id'] for e in view['events'] if 'European banking' in e['event_title'])
+   config['globalId']=next(e['event_id'] for e in view['events'] if e['event_title'].startswith('What goes into diesel'))
    result=subprocess.run([str(node),str(root/'tests/ui_reality_replay_browser.cjs')],input=json.dumps(config),text=True,encoding='utf-8',capture_output=True,timeout=120);print(result.stdout);print(result.stderr);assert result.returncode==0
+   # A separate, labeled TEMP fixture and loopback server test unpinned Global
+   # and MULTI_REGION through the same real API/browser. Real inputs stay intact.
+   from unittest.mock import patch
+   from tools.stage1b_historical_campaign import radar_web_server as app
+   fixture=data/'synthetic-correction-news.json'
+   fixture.write_text(json.dumps([dict(observed_time=recorded,event_time=None,headline_or_text=title,source_name=source,source_url='https://example.test/correction/'+str(i)) for i,(title,source) in enumerate([('European energy markets','ECB'),('Global energy supplies tighten','EIA'),('US and China discuss trade','EIA')])]),'utf-8')
+   fixture_before=fixture.read_bytes()
+   with patch.dict(os.environ,{'RADAR_DATA_ROOT':str(data),'RADAR_DEMO_MODE':'1','GLOBAL_EVENT_RADAR_NEWS_PATH':str(fixture),'GLOBAL_EVENT_RADAR_OFFICIAL_PATH':'','GLOBAL_EVENT_RADAR_POLYMARKET_PATH':'','GLOBAL_EVENT_RADAR_GEOGRAPHY_PATH':'','GLOBAL_EVENT_RADAR_SOURCE_HEALTH_PATH':''}),patch.object(app,'HOST','127.0.0.1'),patch.object(app,'PORT',0):
+    fixture_server=app.bind_server();fixture_thread=threading.Thread(target=fixture_server.serve_forever,daemon=True);fixture_thread.start()
+    try:
+     fixture_config=dict(correctionOnly=True,origin='http://127.0.0.1:'+str(fixture_server.server_port),playwright=str(playwright),browser=str(browser))
+     result=subprocess.run([str(node),str(root/'tests/ui_reality_replay_browser.cjs')],input=json.dumps(fixture_config),text=True,encoding='utf-8',capture_output=True,timeout=60);print(result.stdout);print(result.stderr);assert result.returncode==0
+    finally:fixture_server.shutdown();fixture_thread.join(timeout=10);fixture_server.server_close()
+    assert not fixture_thread.is_alive()
+   assert fixture.read_bytes()==fixture_before
    assert news.read_bytes()==news_before;assert args.markets.read_bytes()==market_before
   finally:
    process.terminate();process.wait(timeout=15);reader.join(timeout=2);error_reader.join(timeout=2);process.stdout.close();process.stderr.close()

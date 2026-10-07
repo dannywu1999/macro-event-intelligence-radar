@@ -16,8 +16,19 @@ def replay_event_as_of(store,event_id,as_of,*,internal=False):
  states=kind('CANONICAL_EVENT_STATE');news=kind('NEWS_ARTICLE');facts=kind('OFFICIAL_EVIDENCE');markets=kind('MARKET_EXPECTATION')
  result=dict(contract_version=CONTRACT,canonical_event_id=event_id,as_of=timestamp,time_basis='SYSTEM_RECORDED_TIME',news_observations=[],official_evidence_observations=[],market_expectation_observations=[],source_states=kind('SOURCE_STATE'),reconstructed_macroview=None,unknowns=[],observation_ids=[],replay_status='NO_OBSERVATIONS')
  projection=None
+ result['context_observations']=[]
  if states:
   event=deepcopy(states[-1]['payload'])
+  # Never re-infer historical context using today's registry or current files.
+  contexts=kind('CONTEXT_GEOGRAPHY')
+  if contexts:
+   context=contexts[-1]['payload']
+   for key in ('context_geography','institution_context','headline_explanation'):
+    event[key]=deepcopy(context[key])
+   event['context_contract']=context['contract_version']
+  else:
+   for key in ('context_geography','institution_context','headline_explanation','context_contract'):
+    event.pop(key,None)
   refs=set(event.get('article_references') or [])
   news=[r for r in news if r['entity_id'] in refs and r['payload'].get('verification_status')=='UNVERIFIED_NEWS']
   facts=[r for r in facts if r['payload'].get('canonical_event_id')==event_id and r['payload'].get('authority_role')=='FACT_AUTHORITY' and r['payload'].get('evidence_status')=='OFFICIAL_CONFIRMED']
@@ -30,9 +41,10 @@ def replay_event_as_of(store,event_id,as_of,*,internal=False):
   event.pop('timeline',None);event.pop('status_summary',None)
   projection=dict(events=[event],items=[deepcopy(r['payload']) for r in news],official_evidence=[deepcopy(r['payload']) for r in facts],market_expectations=[deepcopy(r['payload']) for r in markets])
   result.update(replay_status='AVAILABLE')
-  selected=states+news+facts+markets+kind('SOURCE_STATE');selected.sort(key=lambda r:(r['observed_us'],r['observation_id']))
+  selected=states+news+facts+markets+contexts+kind('SOURCE_STATE');selected.sort(key=lambda r:(r['observed_us'],r['observation_id']))
   active_ids={r['observation_id'] for r in selected}
   history=[{**r,'active_at_as_of':r['observation_id'] in active_ids} for r in observations if r['canonical_event_id']==event_id or r['observation_kind']=='SOURCE_STATE']
+  result['context_observations']=[r for r in history if r['observation_kind']=='CONTEXT_GEOGRAPHY']
   result['news_observations']=[r for r in history if r['observation_kind']=='NEWS_ARTICLE']
   result['official_evidence_observations']=[r for r in history if r['observation_kind']=='OFFICIAL_EVIDENCE']
   result['market_expectation_observations']=[r for r in history if r['observation_kind']=='MARKET_EXPECTATION']

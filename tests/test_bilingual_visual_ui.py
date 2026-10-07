@@ -275,11 +275,13 @@ class BilingualVisualTests(unittest.TestCase):
             self.assertIn('data-mapped-count>0</strong>',markup)
             self.assertIn('data-unmapped-count>5</strong>',markup)
             self.assertNotIn('class="map-marker"',markup)
-            self.assertIn('class="map-empty"',markup)
+            self.assertIn('class="context-marker"',markup)
+            self.assertIn('class="institution-marker"',markup)
+            self.assertIn('data-verified-count>0</strong>',markup)
             self.assertEqual(markup.count('data-geography-status="UNKNOWN"'),5)
         self.assertIn('World Map',result['en'])
         self.assertIn('全球事件地圖',result['zh'])
-        self.assertIn('not a detailed basemap',result['en'])
+        self.assertIn('Schematic continent outlines',result['en'])
         self.assertTrue(result['unchanged'])
 
     def test_explicit_point_uses_same_event_identity_and_accessible_list(self):
@@ -302,7 +304,9 @@ class BilingualVisualTests(unittest.TestCase):
     def test_collocated_events_share_marker_but_keep_separate_controls(self):
         result=self.render(view=self.mapped_view(2))
         self.assertEqual(result['en'].count('class="map-marker"'),1)
-        self.assertEqual(result['en'].count('<button type="button" data-map-event='),2)
+        groups=re.findall(r'<li id="map-group-\d+" class="map-location-group" data-group-kind="curated"[^>]*>(.*?)</ul></li>',result['en'],re.S)
+        self.assertEqual(len(groups),1)
+        self.assertEqual(groups[0].count('<button type="button" data-map-event='),2)
         self.assertIn('data-mapped-count>2</strong>',result['en'])
         self.assertIn('data-unmapped-count>3</strong>',result['en'])
         self.assertIn('data-map-list=',result['en'])
@@ -358,6 +362,53 @@ class BilingualVisualTests(unittest.TestCase):
         self.assertIn('Last successful refresh: <time>Unknown',result['en'])
         self.assertIn('News Articles: Unknown',result['en'])
 
+
+    def test_context_map_marker_roles_and_dedup(self):
+        result=self.render()
+        for markup in (result['en'],result['zh']):
+            self.assertEqual(markup.count('class="institution-marker"'),1)
+            self.assertIn('class="context-marker"',markup)
+            self.assertIn('class="map-basemap"',markup)
+            self.assertEqual(markup.count('data-map-filter='),4)
+            self.assertIn('data-verified-count>0</strong>',markup)
+        self.assertIn('Institution headquarters',result['en'])
+        self.assertIn('機構總部',result['zh'])
+
+    def test_context_html_escaping(self):
+        view=copy.deepcopy(self.view)
+        view['events'][0]['context_geography']['display_name']='<img src=x onerror="bad()">'
+        view['events'][0]['institution_context'][0]['official_name']='<script>bad()</script>'
+        result=self.render(view=view)
+        self.assertNotIn('<img',result['en']);self.assertNotIn('<script>',result['en'])
+        self.assertIn('&lt;img',result['en']);self.assertIn('&lt;script&gt;',result['en'])
+
+    def test_source_supported_location_filter_does_not_verify_entire_event(self):
+        result=self.render()
+        self.assertIn('Source-supported Locations',result['en'])
+        self.assertIn('來源支持的事件位置',result['zh'])
+        self.assertNotIn('Verified Events',result['en'])
+        self.assertNotIn('已確認事件位置',result['zh'])
+
+    def test_corrected_context_map_keeps_global_and_ambiguity_unpinned(self):
+        from tools.stage1b_historical_campaign.radar_context_intelligence import enrich_events
+        for title,source,region in [('European energy markets','ECB','europe'),
+                                     ('Global energy supplies tighten','EIA','global'),
+                                     ('US and China discuss trade','EIA',None)]:
+            with self.subTest(title=title):
+                view=copy.deepcopy(self.view);event=view['events'][0]
+                event.update(event_title=title,source_names=[source],geography=None,geography_status='UNKNOWN')
+                view['events']=enrich_events([event],[])
+                c=view['events'][0]['context_geography'];self.assertEqual(c['region_id'],region)
+                result=self.render(view=view)
+                self.assertIn('data-verified-count>0</strong>',result['en'])
+                self.assertEqual(result['en'].count('class="institution-marker"'),1)
+                if region=='europe':
+                    self.assertIn('data-marker-reference="Europe"',result['en'])
+                    self.assertIn('ECB · Frankfurt, Germany',result['en'])
+                    self.assertNotIn('data-marker-reference="Euro Area"',result['en'])
+                else:
+                    self.assertNotIn('class="context-marker"',result['en'])
+                    self.assertIn('Global' if region else 'Multiple supported regions',result['en'])
 
 if __name__ == '__main__':
     unittest.main()

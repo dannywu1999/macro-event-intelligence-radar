@@ -23,3 +23,5 @@ USER 65532:65532
 EXPOSE 8765
 ENTRYPOINT ["python", "-m", "tools.stage1b_historical_campaign.radar_web_server", "--serve", "--radar-only"]
 
+
+COPY tools/stage1b_historical_campaign/radar_context_intelligence.py tools/stage1b_historical_campaign/radar_context_intelligence.py

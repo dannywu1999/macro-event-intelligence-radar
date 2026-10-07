@@ -48,13 +48,13 @@ def freeze_macroview(view,event_id,*,freeze_key,frozen_at=None):
  facts=unique_records(view.get('official_evidence',[]),'official_evidence_id',fact_ids,lambda r:r.get('canonical_event_id')==event_id and r.get('evidence_status')=='OFFICIAL_CONFIRMED' and r.get('authority_role')=='FACT_AUTHORITY')
  expectations=unique_records(view.get('market_expectations',[]),'expectation_id',expectation_ids,lambda r:r.get('canonical_event_id')==event_id and r.get('link_status')=='LINKED' and r.get('authority_role')=='EXPECTATION_SENSOR')
  snapshot={
-  'event':select(event,('event_id','event_title','verification_status','event_occurred_at','first_detected_at','latest_article_at','geography_status','geography')),
+  'event':select(event,('event_id','event_title','verification_status','event_occurred_at','first_detected_at','latest_article_at','geography_status','geography','event_geography','context_geography','institution_context','headline_explanation','context_contract')),
   'news':[select(r,('article_reference','title','news_source','observed_at','reported_at','reported_time_kind','event_occurred_at','verification_status')) for r in news],
   'official_evidence':[select(r,('official_evidence_id','authority_name','authority_role','document_title','document_url','document_reference','fact_proposition','published_at','first_seen_at','retrieved_at','effective_at','evidence_status','canonical_event_id','link_status')) for r in facts],
   'market_expectations':[select(r,('expectation_id','provider','authority_role','market_id','market_slug','question','outcomes','probabilities','probability_semantics','observed_at','market_close_time','market_url','link_status','canonical_event_id','link_method')) for r in expectations]}
  unknowns=[]
  if event.get('event_occurred_at') is None:unknowns.append('EVENT_OCCURRENCE_TIME_UNKNOWN')
- if event.get('geography_status')!='MAPPED':unknowns.append('GEOGRAPHY_UNKNOWN')
+ if event.get('geography_status') not in {'KNOWN','MAPPED'}:unknowns.append('GEOGRAPHY_UNKNOWN')
  if not facts:unknowns.append('NO_OFFICIAL_EVIDENCE')
  if not expectations:unknowns.append('NO_LINKED_MARKET_EXPECTATION')
  if any(r.get('reported_at') is None for r in news):unknowns.append('NEWS_REPORTED_TIME_UNKNOWN')

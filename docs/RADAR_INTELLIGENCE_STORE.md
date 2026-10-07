@@ -38,7 +38,9 @@ Do not enable persistence on the current public deployment in this release.
 SQLite standard library; schema `RADAR_INTELLIGENCE_DB_V1`:
 `observations`, `macroview_freezes`, `schema_metadata`.
 Canonical UTF-8 JSON and SHA256 bind contents/identities. Changed observations
-append new rows. UPDATE/DELETE triggers protect historical tables.
+append new rows. Append-only through the supported store API. UPDATE/DELETE triggers protect
+historical tables, and supported connections enable recursive triggers to reject
+REPLACE collisions. This is not hostile raw-SQL or physical-file tamper proofing.
 WAL lets a writer and readers coexist; transactions and a 3000ms busy timeout
 bound contention. Connections close after every operation. No SQL extensions,
 external SQL, migration framework or automatic migration. Newer/unknown schemas
@@ -66,3 +68,8 @@ No account/resource purchase or cloud change is part of A6. Backup/export,
 retention/pagination, external integrity anchoring and distributed writers are
 future work. Omission from a retained feed is not inferred as factual retraction.
 No interpretation, market direction or trading authority is introduced.
+
+A6H records changes in article-to-event relationships even if article content is
+unchanged. A7 context is persisted as CONTEXT_GEOGRAPHY observations, including
+article references, derivation method, confidence and registry fingerprint. Replay
+uses stored context only; today's registry is never used to enrich old history.
