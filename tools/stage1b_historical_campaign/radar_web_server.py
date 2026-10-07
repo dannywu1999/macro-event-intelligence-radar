@@ -30,7 +30,7 @@ def require(value: bool, code: str) -> None:
         raise GovernanceError(code)
 
 
-def feed_view(ingestion=None) -> dict[str, Any]:
+def feed_view(ingestion=None, expectation_sensor=None) -> dict[str, Any]:
     if ingestion is not None:
         view = ingestion.read_view(event_radar, event_radar.EvidencePaths.from_environment())
     else:
@@ -45,6 +45,17 @@ def feed_view(ingestion=None) -> dict[str, Any]:
     require(isinstance(view, dict) and isinstance(view.get("events"), list)
             and view.get("canonical_event_contract") == "CANONICAL_EVENT_V0",
             "RADAR_CANONICAL_PROJECTION_UNAVAILABLE:RESTART_RADAR_ONLY_SERVER")
+    if expectation_sensor is not None:
+        records, state = expectation_sensor.snapshot()
+        view.update(event_radar.project_market_records(view["events"], records,
+                    event_radar.EvidencePaths.from_environment().expectation_links))
+        view["expectation_provider"] = state
+    else:
+        view["expectation_provider"] = {"enabled": False, "status": "DISABLED",
+                                      "last_attempt_at": None, "last_success_at": None, "reason": None}
+    from tools.stage1b_historical_campaign.radar_macroview_freeze import build_previews
+    view["macroview_preview_contract"] = "MACROVIEW_PREVIEW_V0"
+    view["macroview_previews"] = build_previews(view)
     count = view.get("distinct_event_count")
     complete = view.get("canonical_event_projection_status") == "AVAILABLE"
     require((type(count) is int and count == len(view["events"])) if complete else count is None,
@@ -76,7 +87,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def _html(self) -> None:
         showcase = any(os.environ.get(name, "").strip() == "1"
-                       for name in ("RADAR_DEMO_MODE", "RADAR_LIVE_EIA", "RADAR_LIVE_ECB"))
+                       for name in ("RADAR_DEMO_MODE", "RADAR_LIVE_EIA", "RADAR_LIVE_ECB", "RADAR_LIVE_POLYMARKET"))
         page_file = ROOT / "ui/radar_public_showcase_v1.html" if showcase or not UI.is_file() else UI
         page = page_file.read_text(encoding="utf-8")
         # Change only this read-only response's legacy local-operation labels.
@@ -107,7 +118,7 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(data)
         elif path == "/api/app/radar":
             try:
-                self.reply(200, feed_view(getattr(self.server, "live_ingestion", None)))
+                self.reply(200, feed_view(getattr(self.server, "live_ingestion", None), getattr(self.server, "expectation_sensor", None)))
             except GovernanceError as exc:
                 self.reply(503, {"error": str(exc), "read_only": True})
         elif path == "/" or (path.startswith("/") and not path.startswith("/api/")):
@@ -128,6 +139,7 @@ def bind_server(*, radar_only: bool = True) -> ThreadingHTTPServer:
     server.radar_only = True
     server.daemon_threads = True
     server.live_ingestion = None
+    server.expectation_sensor = None
     return server
 
 
@@ -154,6 +166,16 @@ def serve(open_browser: bool = False, *, radar_only: bool = True) -> None:
         except Exception:
             server.server_close()
             raise
+    if os.environ.get("RADAR_LIVE_POLYMARKET", "").strip() == "1":
+        from tools.stage1b_historical_campaign.radar_market_expectations import MarketExpectationSensor
+        try:
+            interval = int(os.environ.get("RADAR_POLYMARKET_REFRESH_SECONDS", "1800"))
+            server.expectation_sensor = MarketExpectationSensor(interval=interval)
+        except Exception:
+            server.server_close()
+            if server.live_ingestion is not None:
+                server.live_ingestion.close()
+            raise
     print(f"RADAR_LISTENING={HOST}:{server.server_port}", flush=True)
     print("RADAR READ-ONLY | NO LEGACY RUNTIME", flush=True)
     if open_browser:
@@ -172,11 +194,15 @@ def serve(open_browser: bool = False, *, radar_only: bool = True) -> None:
     try:
         if getattr(server, "live_ingestion", None) is not None:
             server.live_ingestion.start()
+        if getattr(server, "expectation_sensor", None) is not None:
+            server.expectation_sensor.start()
         server.serve_forever()
     except KeyboardInterrupt:
         pass
     finally:
         server.server_close()
+        if getattr(server, "expectation_sensor", None) is not None:
+            server.expectation_sensor.close()
         if getattr(server, "live_ingestion", None) is not None:
             server.live_ingestion.close()
         if previous_sigterm is not None:

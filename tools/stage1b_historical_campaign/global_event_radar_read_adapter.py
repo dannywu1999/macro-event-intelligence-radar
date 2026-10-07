@@ -51,6 +51,7 @@ class EvidencePaths:
     polymarket: Path | None = None
     source_health: Path | None = None
     geography: Path | None = None
+    expectation_links: Path | None = None
 
     @classmethod
     def from_environment(cls) -> "EvidencePaths":
@@ -75,6 +76,7 @@ class EvidencePaths:
             polymarket=configured("GLOBAL_EVENT_RADAR_POLYMARKET_PATH"),
             source_health=configured("GLOBAL_EVENT_RADAR_SOURCE_HEALTH_PATH"),
             geography=configured("GLOBAL_EVENT_RADAR_GEOGRAPHY_PATH"),
+            expectation_links=configured("GLOBAL_EVENT_RADAR_EXPECTATION_LINKS_PATH"),
         )
 
 
@@ -624,14 +626,18 @@ def build_radar_view(
         # Curated second-authority packet is a supplement to this exact bundle,
         # never a fallback for explicitly configured external Official inputs.
         # It is considered only while its exact News reference is present.
-        if paths.official and paths.official.name == "official-packet.json":
+        if paths.official and paths.official.resolve() == (ROOT / "demo/radar_public/official-packet.json").resolve():
             supplement = paths.official.with_name("ecb-official-packet.json")
             if supplement.is_file():
                 references = {_text(row.get("article_reference"), row.get("source_url")) for row in news_rows}
                 official_rows.extend(row for row in _read_rows(supplement)
                                      if row.get("article_reference") in references)
         macro_rows = _read_rows(paths.macroview) if paths.macroview and sources["macroview"]["status"] in {"AVAILABLE", "EMPTY"} else []
-        poly_rows = _read_rows(paths.polymarket)
+        try:
+            poly_rows = _read_rows(paths.polymarket)
+        except EvidenceReadError:
+            poly_rows = []
+            sources["polymarket"] = {"status": "UNAVAILABLE", "last_success_at": None}
         health_rows = _read_rows(paths.source_health)
     except EvidenceReadError as exc:
         return {
@@ -647,7 +653,8 @@ def build_radar_view(
 
     sources["news"] = {"status": "AVAILABLE" if news_rows else "EMPTY", "last_success_at": None}
     sources["official"] = {"status": "AVAILABLE" if official_rows else ("EMPTY" if paths.official else "NOT_CONFIGURED"), "last_success_at": None}
-    sources["polymarket"] = {"status": "AVAILABLE" if poly_rows else ("EMPTY" if paths.polymarket else "NOT_CONFIGURED"), "last_success_at": None}
+    if sources["polymarket"]["status"] != "UNAVAILABLE":
+        sources["polymarket"] = {"status": "AVAILABLE" if poly_rows else ("EMPTY" if paths.polymarket else "NOT_CONFIGURED"), "last_success_at": None}
     sources["source_health"] = {"status": "AVAILABLE" if health_rows else ("EMPTY" if paths.source_health else "NOT_CONFIGURED"), "last_success_at": None}
     if macro_rows:
         trusted_macroview = any(
@@ -766,12 +773,20 @@ def build_radar_view(
         except EvidenceReadError:
             geography_metadata_status = "UNAVAILABLE"
     geography_projection = build_event_geographies(official_projection["events"], geography_metadata)
+    from tools.stage1b_historical_campaign.radar_market_expectations import parse_markets, ExpectationError
+    expectation_rows = []
+    for row in poly_rows[:20]:
+        try:
+            expectation_rows.extend(parse_markets(row, row.get("observed_at") or row.get("retrieved_at")))
+        except ExpectationError:
+            continue
+    expectation_projection = project_market_records(geography_projection["events"], expectation_rows, paths.expectation_links)
     status = "AVAILABLE" if items else "EMPTY"
     return {
         "contract_version": CONTRACT_VERSION, "read_only": True, "status": status,
         "reason": None if items else "NO_NEWS_DISCOVERY_RECORDS",
         "items": items, "item_count": len(items), "news_item_count": len(items), **canonical_events,
-        **official_projection, **geography_projection,
+        **official_projection, **geography_projection, **expectation_projection,
         "geography_metadata_status": geography_metadata_status,
         "latest_observed_data_at": latest_observed,
         "last_successful_update": last_update,
@@ -931,3 +946,24 @@ def _overall_health(rows: list[dict[str, Any]], news_rows: list[dict[str, Any]])
     if "STALE" in states:
         return "STALE"
     return "FRESH" if states == {"FRESH"} else "UNKNOWN"
+
+
+def project_market_records(events, records, links_path=None):
+    """Exact curated links only; optional-input failure cannot suppress News."""
+    from tools.stage1b_historical_campaign.radar_market_expectations import project_expectations
+    mapping = None
+    unavailable = False
+    if links_path is not None:
+        try:
+            rows = _read_rows(links_path)
+            if len(rows) != 1 or rows[0].get("schema") != "EXACT_MARKET_LINKS_V1":
+                raise EvidenceReadError("INVALID_EXPECTATION_LINKS")
+            mapping = rows[0].get("event_to_market")
+            if not isinstance(mapping, dict):
+                raise EvidenceReadError("INVALID_EXPECTATION_LINKS")
+        except EvidenceReadError:
+            unavailable = True
+    result = project_expectations(events, records, mapping)
+    if unavailable:
+        result["expectation_link_status"] = "UNAVAILABLE"
+    return result

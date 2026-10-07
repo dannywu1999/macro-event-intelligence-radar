@@ -1,0 +1,4 @@
+[
+ {"id":"fixture-market-01","slug":"fixture-market-question","question":"Synthetic fixture: will a specified decision occur?","outcomes":"[\"Yes\",\"No\"]","outcomePrices":"[\"0.6200\",\"0.3800\"]","endDate":"2026-12-31T00:00:00Z","events":[{"slug":"synthetic-fixture-event"}]},
+ {"id":"fixture-market-02","question":"Synthetic fixture with unavailable prices","outcomes":["Yes","No"]}
+]

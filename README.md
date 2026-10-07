@@ -174,3 +174,29 @@ EIA snapshot fallback is retained even in ECB-only mode. No real ECB data is
 bundled: offline fixture URLs/titles are explicitly synthetic test data.
 See [Deployment](docs/DEPLOYMENT.md) for future opt-in settings. Free hosting
 may sleep; these sources do not provide guaranteed continuous/global monitoring.
+
+## Market expectations (pending release, disabled by default)
+
+`RADAR_LIVE_POLYMARKET=1` explicitly enables one process-owned public Gamma
+request per bounded refresh interval (`RADAR_POLYMARKET_REFRESH_SECONDS`, default
+1800, minimum 300). No credentials, retry, persistent state or factual authority.
+Keep it disabled until a separately authorized release. API reads never fetch.
+`GLOBAL_EVENT_RADAR_POLYMARKET_PATH` may supply recorded Gamma rows with explicit
+`observed_at`; absent time remains unavailable, never filled with current time.
+`GLOBAL_EVENT_RADAR_EXPECTATION_LINKS_PATH` optionally reads a JSON object with
+`schema: EXACT_MARKET_LINKS_V1` and `event_to_market` mapping exact existing event
+IDs to exact market IDs. Missing, wrong or ambiguous mapping leaves markets
+unlinked. No example mapping is enabled. `outcomePrices` values retain provider
+precision/type, labeled provider outcome prices (0–1), without recalibration.
+Market URLs require a unique provider-supplied event slug, never title matching.
+
+## MacroView V0 (pending release)
+
+The API includes bounded `MACROVIEW_PREVIEW_V0` projections of existing evidence;
+these are explicitly **not persisted frozen snapshots**. Internal pure
+`freeze_macroview` requires an explicit key and optional timezone-bearing time.
+It copies complete selected News, proposition and linked expectation contents
+with deterministic IDs/hashes. Later source changes cannot mutate old values.
+Facts are `NEWS_ONLY` or `PARTIAL_OFFICIAL_EVIDENCE`; expectation snapshots remain
+independent. Unknowns stay explicit. There is no write endpoint, archive, decision,
+market direction or trade authorization. The deployment remains read-only.

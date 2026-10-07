@@ -12,6 +12,8 @@ COPY tools/stage1b_historical_campaign/ecb_live_ingestion.py tools/stage1b_histo
 COPY demo/radar_public/news/rss_headlines_eia_snapshot.csv demo/radar_public/news/rss_headlines_eia_snapshot.csv
 COPY demo/radar_public/official-packet.json demo/radar_public/official-packet.json
 COPY demo/radar_public/ecb-official-packet.json demo/radar_public/ecb-official-packet.json
+COPY tools/stage1b_historical_campaign/radar_market_expectations.py tools/stage1b_historical_campaign/radar_market_expectations.py
+COPY tools/stage1b_historical_campaign/radar_macroview_freeze.py tools/stage1b_historical_campaign/radar_macroview_freeze.py
 COPY demo/radar_public/metadata.json demo/radar_public/metadata.json
 # The platform supplies PORT. Without one, the application's local fallback remains.
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 HOST=0.0.0.0 RADAR_DATA_ROOT=/data

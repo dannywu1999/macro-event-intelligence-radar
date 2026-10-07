@@ -20,3 +20,7 @@
 !demo/radar_public/metadata.json
 
 !demo/radar_public/ecb-official-packet.json
+
+!tools/stage1b_historical_campaign/radar_market_expectations.py
+
+!tools/stage1b_historical_campaign/radar_macroview_freeze.py

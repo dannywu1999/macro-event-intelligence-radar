@@ -62,4 +62,6 @@ class EcbOfficialExpansionTests(unittest.TestCase):
  def test_untrusted_proposition_and_title_escape(self):
   v=copy.deepcopy(self.view);v['official_evidence'][0]['fact_proposition']='<img src=x onerror="alert(1)">';v['events'][0]['event_title']='<script>alert(1)</script>'
   result=self.render(v);self.assertNotIn('<img src=x',result['en']);self.assertNotIn('<script>alert(1)</script>',result['en']);self.assertIn('&lt;img',result['en'])
+ def test_external_same_filename_does_not_load_bundled_supplement(self):
+  p=self.root/'official-packet.json';p.write_text('[]','utf-8');(self.root/'ecb-official-packet.json').write_text(json.dumps(self.packet),'utf-8');v=radar.build_radar_view(radar.EvidencePaths(news=self.news,official=p));self.assertEqual(v['official_evidence'],[])
 if __name__=='__main__':unittest.main()
