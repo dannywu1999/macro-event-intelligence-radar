@@ -621,6 +621,15 @@ def build_radar_view(
         raw_news_rows = _read_news_rows(paths.news)
         news_rows = _dedupe_news_rows(raw_news_rows)
         official_rows = _read_rows(paths.official)
+        # Curated second-authority packet is a supplement to this exact bundle,
+        # never a fallback for explicitly configured external Official inputs.
+        # It is considered only while its exact News reference is present.
+        if paths.official and paths.official.name == "official-packet.json":
+            supplement = paths.official.with_name("ecb-official-packet.json")
+            if supplement.is_file():
+                references = {_text(row.get("article_reference"), row.get("source_url")) for row in news_rows}
+                official_rows.extend(row for row in _read_rows(supplement)
+                                     if row.get("article_reference") in references)
         macro_rows = _read_rows(paths.macroview) if paths.macroview and sources["macroview"]["status"] in {"AVAILABLE", "EMPTY"} else []
         poly_rows = _read_rows(paths.polymarket)
         health_rows = _read_rows(paths.source_health)

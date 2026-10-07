@@ -18,3 +18,5 @@
 !demo/radar_public/news/rss_headlines_eia_snapshot.csv
 !demo/radar_public/official-packet.json
 !demo/radar_public/metadata.json
+
+!demo/radar_public/ecb-official-packet.json

@@ -1,0 +1,15 @@
+{
+  "official_confirmation": "OFFICIAL_CONFIRMED",
+  "authority_role": "FACT_AUTHORITY",
+  "authority_name": "European Central Bank",
+  "document_title": "ECB amends monetary policy implementation guidelines as part of regular review",
+  "official_source": "https://www.ecb.europa.eu//press/pr/date/2026/html/ecb.pr260929~050089e922.en.html",
+  "official_document_reference": "https://www.ecb.europa.eu//press/pr/date/2026/html/ecb.pr260929~050089e922.en.html",
+  "official_fact_proposition": "The European Central Bank (ECB) today published amendments to its guidelines on the implementation of monetary policy in the Eurosystem, applicable as of 30 November 2026 as part of a regular review.",
+  "official_published_at": null,
+  "official_project_first_seen_at": "2026-10-07T02:02:20.214402Z",
+  "official_retrieved_at": "2026-10-07T02:02:20.214402Z",
+  "canonical_event_id": "canonical-event-v0-ac4cab6ba9e41b69c67042a771c9f64d4c3dec750237d08f83d6472de1a9bd67",
+  "article_reference": "https://www.ecb.europa.eu//press/pr/date/2026/html/ecb.pr260929~050089e922.en.html",
+  "document_sha256": "352068e5d41457127ad9f612a910f83bc9ebaf11809c60e60a27e8a7003cce21"
+}
