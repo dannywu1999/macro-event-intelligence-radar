@@ -7,6 +7,8 @@ COPY tools/stage1b_historical_campaign/radar_web_server.py tools/stage1b_histori
 COPY ui/radar_public_showcase_v1.html ui/radar_public_showcase_v1.html
 COPY ui/radar_demo_translations.js ui/radar_demo_translations.js
 COPY tools/stage1b_historical_campaign/eia_live_ingestion.py tools/stage1b_historical_campaign/eia_live_ingestion.py
+COPY tools/stage1b_historical_campaign/live_source_ingestion.py tools/stage1b_historical_campaign/live_source_ingestion.py
+COPY tools/stage1b_historical_campaign/ecb_live_ingestion.py tools/stage1b_historical_campaign/ecb_live_ingestion.py
 COPY demo/radar_public/news/rss_headlines_eia_snapshot.csv demo/radar_public/news/rss_headlines_eia_snapshot.csv
 COPY demo/radar_public/official-packet.json demo/radar_public/official-packet.json
 COPY demo/radar_public/metadata.json demo/radar_public/metadata.json

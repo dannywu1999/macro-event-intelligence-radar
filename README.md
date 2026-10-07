@@ -142,3 +142,35 @@ shipped. See [Deployment](docs/DEPLOYMENT.md) for the input contract.
 Geography adds fields without changing event identity, article membership,
 verification, Official Evidence or Timeline. No external map assets, geocoder,
 AI extraction, location network requests or new package dependencies are used.
+
+## Multi-Source Discovery V1 (ECB opt-in)
+
+`RADAR_LIVE_ECB=1` adds **ECB Press** as a second independently refreshed News
+discovery source. It is **disabled by default**. Name and endpoint reuse the
+existing A1 source profile: `https://www.ecb.europa.eu/rss/press.html`.
+This is headline discovery, not an expansion of the Official Evidence contract.
+Every ECB article/event remains UNVERIFIED_NEWS with no automatic official fact
+record. ECB headquarters never supplies an event location.
+
+Both providers use the same five-column CSV/article pipeline, exact source/URL
+identity and separate retention, status and last-valid state. Similar headlines
+across sources are not merged by ingestion. EIA's five pinned snapshot articles
+and its specific proposition evidence remain protected from ECB retention.
+Missing source publication stays blank/null, independent of observation time.
+Timeline and Geography use the same existing event projections.
+
+When ECB is enabled, one process-owned worker coordinates both enabled sources
+with separate intervals and bounded sequential fetches. There are no per-item
+threads, retries inside a cycle, collector lifecycle dependencies or new APIs.
+ECB failure cannot revert a successful EIA acquisition; EIA failure cannot erase
+valid ECB articles. ECB starts empty, reports UNAVAILABLE on initial failure,
+and LAST_VALID_FALLBACK after a failure with retained data. The existing EIA
+environment flags and `live_ingestion` response retain their EIA-only meaning.
+
+The API adds `discovery_sources`; the compact bilingual **Live Discovery Sources**
+section shows enablement, acquisition status, last success and per-source article
+counts. Acquisition is separate from source health and factual confirmation.
+EIA snapshot fallback is retained even in ECB-only mode. No real ECB data is
+bundled: offline fixture URLs/titles are explicitly synthetic test data.
+See [Deployment](docs/DEPLOYMENT.md) for future opt-in settings. Free hosting
+may sleep; these sources do not provide guaranteed continuous/global monitoring.

@@ -30,6 +30,21 @@ const {chromium}=require(input.playwright);
    assert.ok((await timeline.innerText()).includes(locale==='zh-TW'?'發布時間: 未知':'Published: Unknown'));
    assert.ok((await timeline.innerText()).includes('UNVERIFIED_NEWS'));
    assert.ok((await timeline.innerText()).includes('UTC'));
+   if(input.discovery){
+    assert.equal(await page.locator('.discovery-source').count(),2);
+    for(const [name,state] of Object.entries(input.discovery)){
+     const row=page.locator('[data-discovery-source="'+name+'"]');
+     assert.ok(await row.isVisible());
+     assert.equal(await row.getAttribute('data-acquisition-status'),state);
+    }
+    assert.ok((await page.locator('.discovery-sources h2').innerText()).includes(locale==='zh-TW'?'即時發現來源':'Live Discovery Sources'));
+    const ecbEvents=page.locator('.event-card').filter({hasText:'ECB Press'});
+    assert.equal(await ecbEvents.count(),input.ecbEvents||3);
+    assert.equal(await ecbEvents.locator('[data-timeline-type="OFFICIAL_EVIDENCE"]').count(),0);
+    assert.equal(await ecbEvents.locator('[data-geography-status="UNKNOWN"]').count(),input.ecbEvents||3);
+    assert.equal(await ecbEvents.locator('[data-timeline-type="NEWS_DISCOVERED"]').count(),input.ecbEvents||3);
+    results.push(`${locale}/independent-source-status-ecb-semantics:PASS`);
+   }
    const mapped=input.view?input.view.mapped_event_count:0;
    assert.equal(await page.locator('[data-mapped-count]').innerText(),String(mapped));
    assert.equal(await page.locator('[data-unmapped-count]').innerText(),String((input.counts||[5,5,1])[1]-mapped));

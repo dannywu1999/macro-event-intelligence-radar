@@ -130,109 +130,35 @@ def integer_setting(env, name, default, minimum, maximum):
         raise IngestionError('INVALID_' + name)
     return value
 
-class EiaIngestion:
-    def __init__(self, *, bundle=BUNDLE, runtime_root=None, interval=1800, max_articles=100, fetcher=None):
-        self.bundle = Path(bundle).resolve()
-        self.snapshot = self.bundle / 'news/rss_headlines_eia_snapshot.csv'
-        with self.snapshot.open(encoding='utf-8', newline='') as handle:
+from .live_source_ingestion import LiveSourceIngestion
+
+class EiaIngestion(LiveSourceIngestion):
+    @staticmethod
+    def snapshot_rows(bundle):
+        snapshot = Path(bundle) / 'news/rss_headlines_eia_snapshot.csv'
+        with snapshot.open(encoding='utf-8', newline='') as handle:
             reader = csv.DictReader(handle)
             if tuple(reader.fieldnames or ()) != FIELDS:
                 raise IngestionError('SNAPSHOT_SCHEMA_INVALID')
             baseline = list(reader)
-        if not baseline or any(not row['headline_or_text'] or not eia_url(row['source_url']) for row in baseline):
+        if not baseline or any(not row['headline_or_text'] or not eia_url(row['source_url'])
+                               or row['source_name'] != SOURCE for row in baseline):
             raise IngestionError('SNAPSHOT_INVALID')
-        self.pinned = {reference(row['source_url']): row for row in baseline}
-        if len(self.pinned) != len(baseline) or max_articles < len(baseline) or interval < 300:
-            raise IngestionError('UNSAFE_RETENTION_OR_INTERVAL')
-        base = Path(runtime_root) if runtime_root else Path(tempfile.gettempdir()) / 'global-event-radar'
-        base = base.expanduser().resolve()
-        # Do not let a configuration turn bundled data into writable runtime state.
-        if base.is_relative_to(self.bundle):
-            raise IngestionError('RUNTIME_ROOT_INSIDE_BUNDLE')
-        base.mkdir(parents=True, exist_ok=True)
-        self.session = Path(tempfile.mkdtemp(prefix='eia-', dir=base))
-        self.news_path = self.session / 'rss_headlines_eia_runtime.csv'
-        self.interval, self.max_articles = interval, max_articles
-        self.fetcher = fetcher or fetch_eia
-        self.lock, self.refresh_lock = threading.RLock(), threading.Lock()
-        self.stop_event = threading.Event()
-        self.thread = None
-        self.rows = dict(self.pinned)
-        self.status = dict(enabled=True, source=SOURCE, status='STARTING', last_attempt_at=None,
-                           last_success_at=None, refresh_interval_seconds=interval,
-                           article_count=len(self.rows), new_article_count=0, reason=None)
-        self._write(self.rows)
+        if len({reference(row['source_url']) for row in baseline}) != len(baseline):
+            raise IngestionError('SNAPSHOT_INVALID')
+        return baseline
+
+    def __init__(self, *, bundle=BUNDLE, runtime_root=None, interval=1800, max_articles=100, fetcher=None):
+        self.snapshot = Path(bundle).resolve() / 'news/rss_headlines_eia_snapshot.csv'
+        pinned = {reference(row['source_url']): row for row in self.snapshot_rows(bundle)}
+        super().__init__(source=SOURCE, bundle=bundle, runtime_root=runtime_root,
+                         interval=interval, max_articles=max_articles, parser=parse_rss,
+                         fetcher=fetcher or fetch_eia, pinned=pinned, prefix='eia',
+                         fallback='SNAPSHOT_FALLBACK', error_type=IngestionError,
+                         now_iso=now_iso, reference=reference, failure_reason=failure_reason)
 
     @classmethod
     def from_environment(cls):
         interval = integer_setting(os.environ, 'RADAR_EIA_REFRESH_SECONDS', 1800, 300, 86400)
         maximum = integer_setting(os.environ, 'RADAR_EIA_MAX_ARTICLES', 100, 5, 1000)
         return cls(runtime_root=os.environ.get('RADAR_RUNTIME_ROOT') or None, interval=interval, max_articles=maximum)
-
-    def _write(self, rows):
-        # A single atomic replace publishes the complete five-column CSV.
-        with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', newline='', dir=self.session, delete=False) as handle:
-            temporary = Path(handle.name)
-            writer = csv.DictWriter(handle, fieldnames=FIELDS)
-            writer.writeheader()
-            writer.writerows(rows[url] for url in sorted(rows))
-        try:
-            os.replace(temporary, self.news_path)
-        finally:
-            temporary.unlink(missing_ok=True)
-
-    def read_view(self, adapter, paths):
-        with self.lock:
-            # The lock binds a read to its acquisition status; replace is also atomic.
-            view = adapter.build_radar_view(replace(paths, news=self.news_path,
-                    official=paths.official or self.bundle / 'official-packet.json'))
-            view['live_ingestion'] = dict(self.status)
-            return view
-
-    def refresh(self):
-        if not self.refresh_lock.acquire(blocking=False):
-            return False
-        try:
-            observed = now_iso()
-            with self.lock:
-                self.status['last_attempt_at'] = observed
-            try:
-                incoming = parse_rss(self.fetcher(), observed)
-                with self.lock:
-                    merged = dict(self.rows)
-                    for row in incoming:
-                        merged.setdefault(reference(row['source_url']), row)
-                    extras = [row for url, row in merged.items() if url not in self.pinned]
-                    extras.sort(key=lambda row: (row['event_time'] or row['observed_time'], row['source_url']), reverse=True)
-                    kept = dict(self.pinned)
-                    kept.update((reference(row['source_url']), row) for row in extras[:self.max_articles-len(self.pinned)])
-                    added = len(kept.keys() - self.rows.keys())
-                    self._write(kept)
-                    self.rows = kept
-                    self.status.update(status='LIVE', last_success_at=now_iso(), article_count=len(kept),
-                                       new_article_count=added, reason=None)
-                return True
-            except Exception as error:
-                with self.lock:
-                    self.status.update(status='SNAPSHOT_FALLBACK', new_article_count=0, reason=failure_reason(error))
-                return False
-        finally:
-            self.refresh_lock.release()
-
-    def start(self):
-        with self.lock:
-            if self.thread is not None:
-                return
-            self.thread = threading.Thread(target=self._loop, name='radar-eia-refresh', daemon=True)
-            self.thread.start()
-
-    def _loop(self):
-        while not self.stop_event.is_set():
-            self.refresh()
-            if self.stop_event.wait(self.interval):
-                break
-
-    def close(self):
-        self.stop_event.set()
-        if self.thread is not None:
-            self.thread.join(timeout=TIMEOUT + 2)

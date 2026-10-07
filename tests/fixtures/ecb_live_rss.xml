@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>ECB Press synthetic offline fixture</title>
+<item><title>ECB monetary policy decision fixture</title><description>Fixture discovery only, not a real policy statement.</description><link>https://www.ecb.europa.eu/press/pr/date/2026/html/ecb.fixture001.en.html</link><pubDate>Tue, 06 Oct 2026 14:00:00 GMT</pubDate></item>
+<item><title>Undated ECB press fixture</title><link>https://www.ecb.europa.eu/press/pr/date/2026/html/ecb.fixture002.en.html</link></item>
+<item><title>New energy supply report</title><description>Fixture discovery only.</description><link>https://www.ecb.europa.eu/press/pr/date/2026/html/ecb.fixture003.en.html</link><pubDate>Tue, 06 Oct 2026 14:00:00 GMT</pubDate></item>
+<item><title>Duplicate must not overwrite the first observation</title><link>https://www.ecb.europa.eu/press/pr/date/2026/html/ecb.fixture001.en.html#section</link></item>
+<item><title>Wrong host must be excluded</title><link>https://other.example/press</link></item>
+<item><link>https://www.ecb.europa.eu/press/no-title</link></item>
+</channel></rss>

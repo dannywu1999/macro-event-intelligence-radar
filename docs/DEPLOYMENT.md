@@ -149,3 +149,47 @@ The map uses the same events; its list supports keyboard navigation to Event
 cards/Timelines. All labels disclose **presentation geography**, which never
 verifies an event or upgrades proposition-level evidence. Nothing new must be
 configured on Render to preserve current snapshot/live behavior.
+
+## Future A5.4 ECB opt-in
+
+After separately publishing/reviewing A5.4, ECB can be explicitly enabled:
+
+```text
+RADAR_LIVE_ECB=1
+RADAR_ECB_REFRESH_SECONDS=1800
+RADAR_ECB_MAX_ARTICLES=100
+```
+
+Do not enable these automatically. `RADAR_LIVE_ECB` defaults to disabled and
+requires the exact value `1`. Interval range is 300..86400 seconds; retention
+range is 1..1000 articles. Existing `RADAR_LIVE_EIA`, EIA interval/retention and
+`RADAR_RUNTIME_ROOT` configuration stay supported. When both sources are off,
+the original explicitly configured static Radar inputs remain unchanged.
+
+The exact ECB endpoint is `https://www.ecb.europa.eu/rss/press.html`, named
+`ECB Press`, from the existing A1 profile. The transport uses normal TLS,
+one request per source cycle, a 10-second timeout, a 2 MiB response cap and
+no redirects/retries. Only HTTPS article links on `www.ecb.europa.eu` are
+accepted. Missing/timezone-less source dates do not become publication dates.
+
+When ECB is enabled, a single owned worker schedules enabled sources separately.
+Each source has a separate temporary state directory and article limit; the
+combined CSV is atomically published under another unique temporary directory.
+Only ingestion writes ephemeral CSVs. API reads never fetch or write. Shut down
+the web process normally to stop its owned worker; no external scheduler is needed.
+Do not point runtime storage inside the bundled snapshot.
+
+`live_ingestion` remains the EIA acquisition object (its article count is not the
+combined total). `discovery_sources` adds EIA and ECB entries with enabled,
+status, last attempt/success, interval, article/new counts and a sanitized reason.
+No paths/secrets/tracebacks are exposed. ECB states include DISABLED, STARTING,
+LIVE, UNAVAILABLE and LAST_VALID_FALLBACK. EIA retains SNAPSHOT_FALLBACK.
+The Radar article/event counters reflect the combined data; all missing health
+remains Unknown. A source failure retains its own previous valid data and never
+erases another source's success. All five pinned EIA rows remain restart fallback.
+
+ECB discovery does not create Official Evidence or verified events and does not
+place Frankfurt map pins. Existing EIA proposition evidence remains scoped to
+its exact event. `/healthz` stays process-only; write routes remain rejected.
+The offline package passes deterministic fixture tests, but future deployment
+must verify Render's access to ECB independently of local fetch results.

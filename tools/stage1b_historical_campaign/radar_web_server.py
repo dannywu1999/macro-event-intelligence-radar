@@ -39,6 +39,9 @@ def feed_view(ingestion=None) -> dict[str, Any]:
                                  'last_attempt_at': None, 'last_success_at': None,
                                  'refresh_interval_seconds': None, 'article_count': view.get('item_count'),
                                  'new_article_count': 0, 'reason': None}
+        from tools.stage1b_historical_campaign.live_source_ingestion import disabled_status, EIA_SOURCE, ECB_SOURCE
+        view['discovery_sources'] = {EIA_SOURCE: dict(view['live_ingestion']),
+                                     ECB_SOURCE: disabled_status(ECB_SOURCE)}
     require(isinstance(view, dict) and isinstance(view.get("events"), list)
             and view.get("canonical_event_contract") == "CANONICAL_EVENT_V0",
             "RADAR_CANONICAL_PROJECTION_UNAVAILABLE:RESTART_RADAR_ONLY_SERVER")
@@ -72,7 +75,8 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def _html(self) -> None:
-        showcase = os.environ.get("RADAR_DEMO_MODE", "").strip() == "1" or os.environ.get("RADAR_LIVE_EIA", "").strip() == "1"
+        showcase = any(os.environ.get(name, "").strip() == "1"
+                       for name in ("RADAR_DEMO_MODE", "RADAR_LIVE_EIA", "RADAR_LIVE_ECB"))
         page_file = ROOT / "ui/radar_public_showcase_v1.html" if showcase or not UI.is_file() else UI
         page = page_file.read_text(encoding="utf-8")
         # Change only this read-only response's legacy local-operation labels.
@@ -135,7 +139,15 @@ def serve(open_browser: bool = False, *, radar_only: bool = True) -> None:
     print(f"RADAR_ADAPTER_SHA256={source_sha}", flush=True)
     print("RADAR_CANONICAL_EVENT_CONTRACT=CANONICAL_EVENT_V0", flush=True)
     server = bind_server(radar_only=True)
-    if os.environ.get("RADAR_LIVE_EIA", "").strip() == "1":
+    if os.environ.get("RADAR_LIVE_ECB", "").strip() == "1":
+        from tools.stage1b_historical_campaign.live_source_ingestion import DiscoveryIngestion
+        try:
+            server.live_ingestion = DiscoveryIngestion.from_environment()
+        except Exception:
+            server.server_close()
+            raise
+    elif os.environ.get("RADAR_LIVE_EIA", "").strip() == "1":
+        # Preserve the existing EIA-only launch/factory and environment contract.
         from tools.stage1b_historical_campaign.eia_live_ingestion import EiaIngestion
         try:
             server.live_ingestion = EiaIngestion.from_environment()

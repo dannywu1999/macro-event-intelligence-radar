@@ -10,6 +10,8 @@
 !ui/radar_public_showcase_v1.html
 !ui/radar_demo_translations.js
 !tools/stage1b_historical_campaign/eia_live_ingestion.py
+!tools/stage1b_historical_campaign/live_source_ingestion.py
+!tools/stage1b_historical_campaign/ecb_live_ingestion.py
 !demo/
 !demo/radar_public/
 !demo/radar_public/news/

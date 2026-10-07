@@ -324,6 +324,40 @@ class BilingualVisualTests(unittest.TestCase):
             self.assertNotIn('class="map-marker"',result['en'])
             self.assertIn('data-mapped-count>0</strong>',result['en'])
 
+    def test_discovery_source_states_are_bilingual_independent_and_not_health(self):
+        view=copy.deepcopy(self.view)
+        view['discovery_sources']={'EIA Today in Energy':{'enabled':True,'status':'LIVE','last_success_at':'2026-10-07T00:00:00Z','article_count':7},
+                                  'ECB Press':{'enabled':True,'status':'UNAVAILABLE','last_success_at':None,'article_count':0}}
+        result=self.render(view=view)
+        for markup in (result['en'],result['zh']):
+            self.assertIn('data-discovery-source="EIA Today in Energy" data-acquisition-status="LIVE"',markup)
+            self.assertIn('data-discovery-source="ECB Press" data-acquisition-status="UNAVAILABLE"',markup)
+            self.assertIn('2026-10-07T00:00:00Z',markup)
+            self.assertEqual(markup.count('data-event-status="UNVERIFIED_NEWS"'),5)
+        self.assertIn('Live Discovery Sources',result['en'])
+        self.assertIn('即時發現來源',result['zh'])
+        self.assertIn('Acquisition status is not factual verification',result['en'])
+        self.assertIn('Source health: <strong>Unknown',result['en'])
+        self.assertTrue(result['unchanged'])
+
+    def test_ecb_only_optin_does_not_falsely_claim_no_live_sources(self):
+        view=copy.deepcopy(self.view)
+        view['discovery_sources']['ECB Press'].update(enabled=True,status='STARTING')
+        result=self.render(view=view)
+        self.assertIn('OPT-IN DISCOVERY',result['en'])
+        self.assertNotIn('Automated live ingestion is not enabled',result['en'])
+        self.assertIn('可選新聞發現來源',result['zh'])
+
+    def test_discovery_status_unknown_missing_and_escaping(self):
+        view=copy.deepcopy(self.view)
+        attack='<img src=x onerror="bad()">'
+        view['discovery_sources']={attack:{'enabled':None,'status':attack,'last_success_at':None,'article_count':None}}
+        result=self.render(view=view)
+        self.assertNotIn('<img',result['en'])
+        self.assertIn('&lt;img',result['en'])
+        self.assertIn('Last successful refresh: <time>Unknown',result['en'])
+        self.assertIn('News Articles: Unknown',result['en'])
+
 
 if __name__ == '__main__':
     unittest.main()

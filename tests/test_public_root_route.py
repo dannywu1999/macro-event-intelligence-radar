@@ -33,7 +33,7 @@ class PublicRootRouteTests(unittest.TestCase):
         # Compare current working-tree bytes before/after serving. Git line-ending
         # conversion is separate from the root-route/read-only contract.
         env = {k: v for k, v in os.environ.items() if not k.startswith("GLOBAL_EVENT_RADAR_")
-               and k not in {"HOST", "PORT", "RADAR_DATA_ROOT", "RADAR_DEMO_MODE", "RADAR_LIVE_EIA", "RADAR_RUNTIME_ROOT", "PYTHONPATH"}}
+               and k not in {"HOST", "PORT", "RADAR_DATA_ROOT", "RADAR_DEMO_MODE", "RADAR_LIVE_EIA", "RADAR_LIVE_ECB", "RADAR_RUNTIME_ROOT", "PYTHONPATH"}}
         env.update({"HOST": "127.0.0.1", "PORT": "0", "RADAR_DATA_ROOT": str(ROOT / "demo/radar_public"),
                     "GLOBAL_EVENT_RADAR_NEWS_PATH": "news",
                     "GLOBAL_EVENT_RADAR_OFFICIAL_PATH": "official-packet.json", "RADAR_DEMO_MODE": "1"})
