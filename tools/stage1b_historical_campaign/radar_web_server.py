@@ -32,7 +32,7 @@ def require(value: bool, code: str) -> None:
         raise GovernanceError(code)
 
 
-def feed_view(ingestion=None, expectation_sensor=None) -> dict[str, Any]:
+def feed_view(ingestion=None, expectation_sensor=None, market_watch=None) -> dict[str, Any]:
     if ingestion is not None:
         view = ingestion.read_view(event_radar, event_radar.EvidencePaths.from_environment())
     else:
@@ -47,6 +47,8 @@ def feed_view(ingestion=None, expectation_sensor=None) -> dict[str, Any]:
     require(isinstance(view, dict) and isinstance(view.get("events"), list)
             and view.get("canonical_event_contract") == "CANONICAL_EVENT_V0",
             "RADAR_CANONICAL_PROJECTION_UNAVAILABLE:RESTART_RADAR_ONLY_SERVER")
+    from tools.stage1b_historical_campaign.radar_market_reality import public_market_view
+    view = public_market_view(view)
     if expectation_sensor is not None:
         records, state = expectation_sensor.snapshot()
         view.update(event_radar.project_market_records(view["events"], records,
@@ -55,6 +57,18 @@ def feed_view(ingestion=None, expectation_sensor=None) -> dict[str, Any]:
     else:
         view["expectation_provider"] = {"enabled": False, "status": "DISABLED",
                                       "last_attempt_at": None, "last_success_at": None, "reason": None}
+    from tools.stage1b_historical_campaign.radar_prediction_market_watch import build_watch
+    watch_state = None
+    if market_watch is not None:
+        records, watch_state = market_watch.snapshot()
+        view.update(event_radar.project_market_records(view['events'], records,
+                    event_radar.EvidencePaths.from_environment().expectation_links))
+        view['expectation_provider'] = watch_state
+    elif expectation_sensor is not None:
+        watch_state = {**view['expectation_provider'], 'status': 'STALE' if view['expectation_provider']['status'] == 'LAST_VALID_FALLBACK' else 'CACHED'}
+    elif view.get('sources', {}).get('polymarket', {}).get('status') in {'NOT_CONFIGURED', 'UNAVAILABLE'}:
+        watch_state = {'enabled': False, 'status': 'UNAVAILABLE', 'reason': view['sources']['polymarket']['status']}
+    view['prediction_market_watch'] = build_watch(view.get('market_expectations', []), provider=watch_state)
     from tools.stage1b_historical_campaign.radar_macroview_freeze import build_previews
     view["macroview_preview_contract"] = "MACROVIEW_PREVIEW_V0"
     view["macroview_previews"] = build_previews(view)
@@ -89,7 +103,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def _html(self) -> None:
         showcase = any(os.environ.get(name, "").strip() == "1"
-                       for name in ("RADAR_DEMO_MODE", "RADAR_LIVE_EIA", "RADAR_LIVE_ECB", "RADAR_LIVE_POLYMARKET"))
+                       for name in ("RADAR_DEMO_MODE", "RADAR_LIVE_EIA", "RADAR_LIVE_ECB", "RADAR_LIVE_POLYMARKET", "RADAR_LIVE_MARKET_WATCH"))
         page_file = ROOT / "ui/radar_public_showcase_v1.html" if showcase or not UI.is_file() else UI
         page = page_file.read_text(encoding="utf-8")
         # Change only this read-only response's legacy local-operation labels.
@@ -155,7 +169,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.reply(503, {"error": "INTELLIGENCE_REPLAY_UNAVAILABLE", "read_only": True})
         elif path == "/api/app/radar":
             try:
-                self.reply(200, feed_view(getattr(self.server, "live_ingestion", None), getattr(self.server, "expectation_sensor", None)))
+                self.reply(200, feed_view(getattr(self.server, "live_ingestion", None), getattr(self.server, "expectation_sensor", None), vars(self.server).get('market_watch')))
             except GovernanceError as exc:
                 self.reply(503, {"error": str(exc), "read_only": True})
         elif path == "/" or (path.startswith("/") and not path.startswith("/api/")):
@@ -177,6 +191,7 @@ def bind_server(*, radar_only: bool = True) -> ThreadingHTTPServer:
     server.daemon_threads = True
     server.live_ingestion = None
     server.expectation_sensor = None
+    server.market_watch = None
     return server
 
 
@@ -203,7 +218,10 @@ def serve(open_browser: bool = False, *, radar_only: bool = True) -> None:
         except Exception:
             server.server_close()
             raise
-    if os.environ.get("RADAR_LIVE_POLYMARKET", "").strip() == "1":
+    if os.environ.get('RADAR_LIVE_MARKET_WATCH', '').strip() == '1':
+        from tools.stage1b_historical_campaign.radar_prediction_market_watch import PredictionMarketWatch
+        server.market_watch = PredictionMarketWatch(enabled=True, ttl=int(os.environ.get('RADAR_MARKET_WATCH_TTL_SECONDS', '1800')))
+    if os.environ.get("RADAR_LIVE_POLYMARKET", "").strip() == "1" and server.market_watch is None:
         from tools.stage1b_historical_campaign.radar_market_expectations import MarketExpectationSensor
         try:
             interval = int(os.environ.get("RADAR_POLYMARKET_REFRESH_SECONDS", "1800"))
@@ -218,7 +236,7 @@ def serve(open_browser: bool = False, *, radar_only: bool = True) -> None:
         from tools.stage1b_historical_campaign.radar_intelligence_store import IntelligenceRecorder, configured_db, StoreError
         try:
             server.intelligence_recorder = IntelligenceRecorder(configured_db(),
-                lambda: feed_view(server.live_ingestion, server.expectation_sensor),
+                lambda: feed_view(server.live_ingestion, server.expectation_sensor, server.market_watch),
                 interval=int(os.environ.get("RADAR_INTELLIGENCE_RECORD_SECONDS", "60")))
         except (StoreError, OSError, ValueError):
             # Storage is additive. Neither startup failure nor a recorder failure

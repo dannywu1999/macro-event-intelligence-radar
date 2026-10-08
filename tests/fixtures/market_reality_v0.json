@@ -16,7 +16,8 @@
         "url": "https://example.test/market"
       },
       "source_observation_id": "SPY-09:59",
-      "previous_close": null
+      "previous_close": null,
+      "data_usage_scope": "PUBLIC_REDISTRIBUTABLE"
     },
     {
       "event_id": "canonical-event-v0-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -32,7 +33,8 @@
         "url": "https://example.test/market"
       },
       "source_observation_id": "SPY-10:05",
-      "previous_close": null
+      "previous_close": null,
+      "data_usage_scope": "PUBLIC_REDISTRIBUTABLE"
     },
     {
       "event_id": "canonical-event-v0-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -48,7 +50,8 @@
         "url": "https://example.test/market"
       },
       "source_observation_id": "SPY-10:30",
-      "previous_close": null
+      "previous_close": null,
+      "data_usage_scope": "PUBLIC_REDISTRIBUTABLE"
     },
     {
       "event_id": "canonical-event-v0-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -64,7 +67,8 @@
         "url": "https://example.test/market"
       },
       "source_observation_id": "VIX-09:59",
-      "previous_close": null
+      "previous_close": null,
+      "data_usage_scope": "PUBLIC_REDISTRIBUTABLE"
     },
     {
       "event_id": "canonical-event-v0-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
@@ -80,7 +84,8 @@
         "url": "https://example.test/market"
       },
       "source_observation_id": "VIX-10:05",
-      "previous_close": null
+      "previous_close": null,
+      "data_usage_scope": "PUBLIC_REDISTRIBUTABLE"
     }
   ]
 }

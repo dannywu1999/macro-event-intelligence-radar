@@ -13,6 +13,7 @@ COPY demo/radar_public/news/rss_headlines_eia_snapshot.csv demo/radar_public/new
 COPY demo/radar_public/official-packet.json demo/radar_public/official-packet.json
 COPY demo/radar_public/ecb-official-packet.json demo/radar_public/ecb-official-packet.json
 COPY tools/stage1b_historical_campaign/radar_market_expectations.py tools/stage1b_historical_campaign/radar_market_expectations.py
+COPY tools/stage1b_historical_campaign/radar_event_expectation_linker.py tools/stage1b_historical_campaign/radar_event_expectation_linker.py
 COPY tools/stage1b_historical_campaign/radar_macroview_freeze.py tools/stage1b_historical_campaign/radar_macroview_freeze.py
 COPY tools/stage1b_historical_campaign/radar_intelligence_store.py tools/stage1b_historical_campaign/radar_intelligence_store.py
 COPY tools/stage1b_historical_campaign/radar_reality_replay.py tools/stage1b_historical_campaign/radar_reality_replay.py
@@ -31,3 +32,5 @@ COPY ui/radar_interactive_map.js ui/radar_interactive_map.js
 COPY ui/vendor/maplibre-gl.js ui/vendor/maplibre-gl.js
 COPY ui/vendor/maplibre-gl.css ui/vendor/maplibre-gl.css
 COPY ui/vendor/MAPLIBRE-LICENSE.txt ui/vendor/MAPLIBRE-LICENSE.txt
+
+COPY tools/stage1b_historical_campaign/radar_prediction_market_watch.py tools/stage1b_historical_campaign/radar_prediction_market_watch.py

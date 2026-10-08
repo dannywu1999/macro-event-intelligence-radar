@@ -7,6 +7,12 @@ CONTRACT='POINT_IN_TIME_REPLAY_V0'
 def replay_event_as_of(store,event_id,as_of,*,internal=False):
  timestamp,limit=time_value(as_of)
  observations=store.read_as_of(event_id,timestamp)
+ from .radar_market_reality import public_observation,public_market_view
+ observations=[{**r,'payload':public_market_view(r['payload'])} for r in observations
+     if r['observation_kind']!='MARKET_OBSERVATION'
+     and not (r['observation_kind']=='MARKET_REALITY' and not public_observation(r['payload']))
+     and not (r['observation_kind']=='SOURCE_STATE' and r['entity_id'].startswith('private_market:'))]
+ observations=[r for r in observations if r['payload'] is not None]
  if any(row['observed_us']>limit for row in observations):raise StoreError('FUTURE_OBSERVATION_REJECTED')
  latest={}
  for row in observations:latest[(row['observation_kind'],row['entity_id'])]=row

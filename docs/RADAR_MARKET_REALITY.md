@@ -4,6 +4,23 @@ This is descriptive market observation, not prediction, causality or trading.
 It adds `MARKET_REALITY_SNAPSHOT_V0` to Radar events without changing News or
 Official authority. Public persistence remains disabled.
 
+## Redistribution boundary (A8.1)
+
+Meaningful market input needs explicit `data_usage_scope=PUBLIC_REDISTRIBUTABLE`
+to enter public feed/replay/preview serialization. Missing scope defaults to
+UNKNOWN; UNKNOWN and PRIVATE_RESEARCH_ONLY are withheld, not inferred licensed
+from a serving flag. Private commercial-source observations cannot be promoted
+by changing their scope label. A restricted input may report
+`PRIVATE_SOURCE_NOT_PUBLIC`; News and Official evidence remain usable.
+
+The generic `MARKET_OBSERVATION_V0` lower contract keeps provider market date
+labels and actual system knowledge time separate. Append-only content identity
+excludes repeated poll time; changed content gets another ID. Optional private
+acquisition is not included in PUBLIC or its server startup. Default public
+replay persistence stays off; no acquisition token/data is part of this package.
+The synthetic fixture remains explicitly synthetic and normal-reader rejected;
+its redistribution label is only for isolated mocked rendering tests.
+
 ## Local data audit
 
 Existing SPY research supports historical daily bars, without the required

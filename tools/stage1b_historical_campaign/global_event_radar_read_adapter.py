@@ -955,7 +955,10 @@ def _overall_health(rows: list[dict[str, Any]], news_rows: list[dict[str, Any]])
 
 
 def project_market_records(events, records, links_path=None):
-    """Exact curated links only; optional-input failure cannot suppress News."""
+    """Conservative proposition matching, or explicit curator mappings.
+
+    An unreadable explicit mapping fails closed; it must not enable auto-links.
+    """
     from tools.stage1b_historical_campaign.radar_market_expectations import project_expectations
     mapping = None
     unavailable = False
@@ -969,7 +972,7 @@ def project_market_records(events, records, links_path=None):
                 raise EvidenceReadError("INVALID_EXPECTATION_LINKS")
         except EvidenceReadError:
             unavailable = True
-    result = project_expectations(events, records, mapping)
+    result = project_expectations(events, records, [] if unavailable else mapping)
     if unavailable:
         result["expectation_link_status"] = "UNAVAILABLE"
     return result

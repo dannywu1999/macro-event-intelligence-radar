@@ -12,7 +12,7 @@ from pathlib import Path
 SCHEMA='RADAR_INTELLIGENCE_DB_V1'
 OBSERVATION='INTELLIGENCE_OBSERVATION_V1'
 ROOT=Path(__file__).resolve().parents[2]
-KINDS={'NEWS_ARTICLE','CANONICAL_EVENT_STATE','OFFICIAL_EVIDENCE','MARKET_EXPECTATION','SOURCE_STATE','CONTEXT_GEOGRAPHY','MARKET_REALITY'}
+KINDS={'NEWS_ARTICLE','CANONICAL_EVENT_STATE','OFFICIAL_EVIDENCE','MARKET_EXPECTATION','SOURCE_STATE','CONTEXT_GEOGRAPHY','MARKET_REALITY','MARKET_OBSERVATION','MARKET_OBSERVATION_RECEIPT'}
 MAX_PAYLOAD=2*1024*1024
 class StoreError(ValueError):pass
 
@@ -55,6 +55,16 @@ def validate_payload_time(kind,payload,recorded_us):
   try:
    if normalize_record(payload)!=payload:raise MarketRealityError('NONCANONICAL_MARKET_RECORD')
   except (MarketRealityError,TypeError):raise StoreError('INVALID_MARKET_REALITY_RECORD')
+ if kind=='MARKET_OBSERVATION':
+  from .radar_market_reality import normalize_observation,MarketRealityError
+  try:
+   if normalize_observation(payload)!=payload:raise MarketRealityError('NONCANONICAL_MARKET_OBSERVATION')
+  except (MarketRealityError,TypeError):raise StoreError('INVALID_MARKET_OBSERVATION')
+ if kind=='MARKET_OBSERVATION_RECEIPT':
+  if (payload.get('contract_version')!='MARKET_OBSERVATION_RECEIPT_V0' or
+      not isinstance(payload.get('observation_id'),str) or not payload['observation_id'].startswith('market-observation-v0-') or
+      payload.get('data_usage_scope')!='PRIVATE_RESEARCH_ONLY'):
+   raise StoreError('INVALID_MARKET_RECEIPT')
  if kind=='CONTEXT_GEOGRAPHY':
   refs=payload.get('derived_from');fingerprint=payload.get('registry_fingerprint');context=payload.get('context_geography')
   if (payload.get('contract_version')!='EVENT_CONTEXT_V1' or not payload.get('canonical_event_id')
@@ -64,7 +74,7 @@ def validate_payload_time(kind,payload,recorded_us):
       or context.get('confidence') not in (None,'LOW','MEDIUM','HIGH')
       or not isinstance(payload.get('institution_context'),list) or not isinstance(payload.get('headline_explanation'),dict)):
    raise StoreError('INVALID_CONTEXT_PROVENANCE')
- keys={'NEWS_ARTICLE':('observed_at','discovered_at'),'CANONICAL_EVENT_STATE':('first_detected_at',),'OFFICIAL_EVIDENCE':('first_seen_at','retrieved_at'),'MARKET_EXPECTATION':('observed_at',),'MARKET_REALITY':('observed_at','event_observed_at')}.get(kind,())
+ keys={'NEWS_ARTICLE':('observed_at','discovered_at'),'CANONICAL_EVENT_STATE':('first_detected_at',),'OFFICIAL_EVIDENCE':('first_seen_at','retrieved_at'),'MARKET_EXPECTATION':('observed_at',),'MARKET_REALITY':('observed_at','event_observed_at'),'MARKET_OBSERVATION':('observed_at',)}.get(kind,())
  for key in keys:
   value=payload.get(key)
   if value is not None and time_value(value)[1]>recorded_us:raise StoreError('FUTURE_INPUT_KNOWLEDGE_REJECTED')
@@ -148,18 +158,36 @@ class IntelligenceStore:
    validate_payload_time(kind,record['payload'],micros)
    if kind=='CONTEXT_GEOGRAPHY' and record['payload']['canonical_event_id']!=event:raise StoreError('CONTEXT_EVENT_BINDING_MISMATCH')
    if kind=='MARKET_REALITY' and record['payload']['event_id']!=event:raise StoreError('MARKET_EVENT_BINDING_MISMATCH')
+   if kind=='MARKET_OBSERVATION' and (entity!=record['payload']['observation_id'] or event is not None):raise StoreError('GLOBAL_MARKET_IDENTITY_MISMATCH')
    payload=canonical(record['payload'])
    if len(payload.encode('utf-8'))>MAX_PAYLOAD:raise StoreError('PAYLOAD_TOO_LARGE')
    provenance=canonical(record.get('provenance') or {})
    source=optional_time(record.get('source_timestamp'))
+   if kind=='MARKET_OBSERVATION' and source!=time_value(record['payload']['market_timestamp'])[0]:raise StoreError('MARKET_SOURCE_TIME_MISMATCH')
    payload_hash=sha(payload)
    identity=sha(canonical([OBSERVATION,kind,entity,event,timestamp,source,payload_hash,provenance]))
    prepared.append(('observation-v1-'+identity,kind,entity,event,timestamp,micros,source,payload,payload_hash,provenance,OBSERVATION))
+   if kind=='MARKET_OBSERVATION' and record['payload']['data_usage_scope']=='PRIVATE_RESEARCH_ONLY':
+    # Content remains unique. A separate append-only, deduplicated receipt
+    # tracks A -> B -> A revisions without duplicating unchanged polling.
+    p=record['payload'];receipt=canonical(dict(contract_version='MARKET_OBSERVATION_RECEIPT_V0',observation_id=entity,data_usage_scope='PRIVATE_RESEARCH_ONLY'))
+    receipt_entity=canonical([p['provider'],p['provider_dataset'],p['symbol'],p['market_timestamp'],p['interval']])
+    rh=sha(receipt);rp=canonical({'time_basis':'SYSTEM_RECORDED_TIME'})
+    rid='observation-v1-'+sha(canonical([OBSERVATION,'MARKET_OBSERVATION_RECEIPT',receipt_entity,None,timestamp,source,rh,rp]))
+    prepared.append((rid,'MARKET_OBSERVATION_RECEIPT',receipt_entity,None,timestamp,micros,source,receipt,rh,rp,OBSERVATION))
   inserted=[]
   try:
    with self.connection(write=True) as db:
     self._schema(db);db.execute('BEGIN IMMEDIATE')
     for row in prepared:
+     if row[1]=='MARKET_OBSERVATION':
+      # Atomic content identity dedup across poll times, including restarts.
+      prior=db.execute('SELECT * FROM observations WHERE observation_kind=? AND entity_id=?',(row[1],row[2])).fetchall()
+      if len(prior)>1:raise StoreError('AMBIGUOUS_MARKET_OBSERVATION')
+      if prior:
+       self.decode(prior[0])
+       if row[5]<prior[0]['observed_us']:raise StoreError('BACKDATED_OBSERVATION_REJECTED')
+       continue
      existing=db.execute('SELECT * FROM observations WHERE observation_id=?',(row[0],)).fetchone()
      if existing:
       if tuple(existing)!=row:raise StoreError('OBSERVATION_IDENTITY_COLLISION')
@@ -170,7 +198,7 @@ class IntelligenceStore:
       if row[3]==latest['canonical_event_id'] and row[8]==latest['payload_sha256'] and row[6]==latest['source_timestamp'] and row[9]==latest['provenance']:continue
       if row[5]==latest['observed_us']:raise StoreError('CONFLICTING_SAME_TIME_OBSERVATION')
      result=db.execute('INSERT OR IGNORE INTO observations VALUES (?,?,?,?,?,?,?,?,?,?,?)',row)
-     if result.rowcount:inserted.append(row[0])
+     if result.rowcount and row[1]!='MARKET_OBSERVATION_RECEIPT':inserted.append(row[0])
    return inserted
   except sqlite3.Error as e:raise StoreError('STORE_WRITE_UNAVAILABLE') from e
 
@@ -212,6 +240,31 @@ class IntelligenceStore:
    return [self.decode(row) for row in rows]
   except sqlite3.Error as e:raise StoreError('STORE_READ_UNAVAILABLE') from e
 
+ def read_market_as_of(self,as_of,*,market_start=None,market_end=None):
+  """Private callers only; the public API never serializes this global kind."""
+  _,micros=time_value(as_of)
+  bounds='';parameters=[micros]
+  if market_start is not None:bounds+=' AND source_timestamp>=?';parameters.append(time_value(market_start)[0])
+  if market_end is not None:bounds+=' AND source_timestamp<=?';parameters.append(time_value(market_end)[0])
+  try:
+   with self.connection() as db:
+    self._schema(db)
+    rows=db.execute("SELECT * FROM observations WHERE observation_kind='MARKET_OBSERVATION' AND observed_us<=?"+bounds+" ORDER BY observed_us,observation_id LIMIT 10001",parameters).fetchall()
+    receipts=db.execute("SELECT * FROM observations WHERE observation_kind='MARKET_OBSERVATION_RECEIPT' AND observed_us<=?"+bounds+" ORDER BY observed_us,observation_id LIMIT 10001",parameters).fetchall()
+   if len(rows)>10000 or len(receipts)>10000:raise StoreError('MARKET_READ_BOUND_EXCEEDED')
+   decoded=[self.decode(row) for row in rows];by_content={r['entity_id']:r for r in decoded};latest={}
+   for raw in receipts:
+    receipt=self.decode(raw);original=by_content.get(receipt['payload']['observation_id'])
+    if original is None:raise StoreError('MARKET_RECEIPT_CONTENT_MISSING')
+    p=original['payload'];expected_entity=canonical([p['provider'],p['provider_dataset'],p['symbol'],p['market_timestamp'],p['interval']])
+    if receipt['entity_id']!=expected_entity or receipt['observed_us']<original['observed_us']:raise StoreError('INVALID_MARKET_RECEIPT_BINDING')
+    latest[receipt['entity_id']]={**original,'receipt_observed_at':receipt['observed_at']}
+   # Public/unknown lower records and pre-receipt stores retain their original
+   # registration. Private recorded revisions use latest as-of receipt time.
+   return [r for r in decoded if r['payload']['data_usage_scope']!='PRIVATE_RESEARCH_ONLY' or
+       canonical([r['payload']['provider'],r['payload']['provider_dataset'],r['payload']['symbol'],r['payload']['market_timestamp'],r['payload']['interval']]) not in latest]+list(latest.values())
+  except sqlite3.Error as e:raise StoreError('STORE_READ_UNAVAILABLE') from e
+
  @staticmethod
  def decode(row):
   if row['contract_version']!=OBSERVATION or sha(row['payload'])!=row['payload_sha256']:raise StoreError('OBSERVATION_INTEGRITY_FAILED')
@@ -219,6 +272,8 @@ class IntelligenceStore:
   validate_payload_time(row['observation_kind'],payload,row['observed_us'])
   if row['observation_kind']=='CONTEXT_GEOGRAPHY' and payload.get('canonical_event_id')!=row['canonical_event_id']:raise StoreError('CONTEXT_EVENT_BINDING_MISMATCH')
   if row['observation_kind']=='MARKET_REALITY' and payload.get('event_id')!=row['canonical_event_id']:raise StoreError('MARKET_EVENT_BINDING_MISMATCH')
+  if row['observation_kind']=='MARKET_OBSERVATION' and (payload['observation_id']!=row['entity_id'] or row['canonical_event_id'] is not None):raise StoreError('GLOBAL_MARKET_IDENTITY_MISMATCH')
+  if row['observation_kind']=='MARKET_OBSERVATION' and row['source_timestamp']!=time_value(payload['market_timestamp'])[0]:raise StoreError('MARKET_SOURCE_TIME_MISMATCH')
   identity='observation-v1-'+sha(canonical([OBSERVATION,row['observation_kind'],row['entity_id'],row['canonical_event_id'],row['observed_at'],row['source_timestamp'],row['payload_sha256'],row['provenance']]))
   if identity!=row['observation_id'] or time_value(row['observed_at'])[1]!=row['observed_us']:raise StoreError('OBSERVATION_INTEGRITY_FAILED')
   return {**dict(row),'payload':payload,'provenance':provenance}

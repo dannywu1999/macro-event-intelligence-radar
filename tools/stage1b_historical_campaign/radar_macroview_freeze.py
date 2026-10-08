@@ -51,7 +51,7 @@ def freeze_macroview(view,event_id,*,freeze_key,frozen_at=None):
   'event':select(event,('event_id','event_title','verification_status','event_occurred_at','first_detected_at','latest_article_at','geography_status','geography','event_geography','context_geography','institution_context','headline_explanation','context_contract')),
   'news':[select(r,('article_reference','title','news_source','observed_at','reported_at','reported_time_kind','event_occurred_at','verification_status')) for r in news],
   'official_evidence':[select(r,('official_evidence_id','authority_name','authority_role','document_title','document_url','document_reference','fact_proposition','published_at','first_seen_at','retrieved_at','effective_at','evidence_status','canonical_event_id','link_status')) for r in facts],
-  'market_expectations':[select(r,('expectation_id','provider','authority_role','market_id','market_slug','question','outcomes','probabilities','probability_semantics','observed_at','market_close_time','market_url','link_status','canonical_event_id','link_method')) for r in expectations]}
+  'market_expectations':[select(r,('expectation_id','provider','authority_role','market_id','market_slug','question','outcomes','probabilities','probability_semantics','observed_at','market_close_time','market_url','link_status','canonical_event_id','link_method',*(('event_expectation_link',) if 'event_expectation_link' in r else ()))) for r in expectations]}
  # Add only supplied A8 observations. Existing freezes keep their original bytes.
  if event.get('market_reality') is not None:
   snapshot['market_reality']=deepcopy(event['market_reality'])

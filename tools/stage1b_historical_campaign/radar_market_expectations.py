@@ -38,6 +38,12 @@ def price(value):
  except (ValueError,OverflowError):valid=False
  return value if valid else None
 
+def amount(value):
+ if isinstance(value,bool) or not isinstance(value,(str,int,float)):return None
+ try:valid=math.isfinite(float(value)) and float(value)>=0
+ except (ValueError,OverflowError):valid=False
+ return value if valid else None
+
 def parse_markets(payload,observed_at):
  observed=timestamp(observed_at)
  if observed is None:raise ExpectationError('INVALID_OBSERVED_AT')
@@ -63,6 +69,25 @@ def parse_markets(payload,observed_at):
   event_slugs={e.get('slug') for e in provider_events if isinstance(e,dict) and isinstance(e.get('slug'),str) and re.fullmatch(r'[a-zA-Z0-9-]+',e['slug'])} if isinstance(provider_events,list) and len(provider_events)<=100 else set()
   event_slug=next(iter(event_slugs)) if len(event_slugs)==1 else None
   record=dict(contract_version=CONTRACT,provider='Polymarket',authority_role='EXPECTATION_SENSOR',market_id=mid,market_slug=slug,question=text(row.get('question')),outcomes=labels,probabilities=probabilities,probability_semantics='PROVIDER_OUTCOME_PRICES',observed_at=observed,market_close_time=timestamp(row.get('endDate')),market_url='https://polymarket.com/event/'+event_slug if event_slug else None,link_status='UNLINKED',canonical_event_id=None,link_method=None)
+  # Public allowlisted metadata only; resolution text is not factual authority.
+  metadata=dict(description=text(row.get('description'),6000),resolution_criteria=text(row.get('resolutionCriteria'),6000),resolution_source=text(row.get('resolutionSource'),1000),group_title=text(row.get('groupItemTitle'),300),provider_created_at=timestamp(row.get('createdAt')),provider_updated_at=timestamp(row.get('updatedAt')),
+   provider_events=[{k:text(e.get(k),500) for k in ('id','slug','title','category')} for e in provider_events[:20] if isinstance(e,dict)] if isinstance(provider_events,list) else [])
+  # Public outcome identifiers are optional provenance. They must align with
+  # labels before being attached; a token ID never supplies a missing price.
+  for source,kind in (('clobTokenIds','CLOB_TOKEN_ID'),('positionIds','POSITION_ID')):
+   ids=array(row.get(source))
+   if labels and ids is not None and len(ids)==len(labels) and all(isinstance(x,str) and re.fullmatch(r'(?:[0-9]{1,128}|0x[0-9a-fA-F]{64})',x) for x in ids):
+    metadata['outcome_identifiers']=ids
+    metadata['outcome_identifier_kind']=kind
+    break
+  for flag in ('closed','active'):
+   if type(row.get(flag)) is bool:metadata[flag]=row[flag]
+  for field in ('liquidity','volume'):
+   if field in row:metadata[field]=amount(row[field])
+  if type(row.get('archived')) is bool:metadata['archived']=row['archived']
+  if (any(isinstance(row.get(key),str) and len(row[key].strip())>limit for key,limit in [('question',3000),('description',6000),('resolutionCriteria',6000)])
+      or isinstance(provider_events,list) and len(provider_events)>20):metadata['incomplete']=True
+  if any(metadata.values()) or any(flag in metadata for flag in ('closed','active')):record['proposition_metadata']=metadata
   # Snapshot identity includes observation and values. Re-reading the same
   # snapshot is stable; a later observation is a new snapshot, never history.
   record['expectation_id']='market-expectation-v1-'+hashlib.sha256(json.dumps(record,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()).hexdigest()
@@ -71,21 +96,34 @@ def parse_markets(payload,observed_at):
  return [records[mid] for mid in sorted(records) if mid not in conflicts][:20]
 
 def project_expectations(events,records,mapping=None):
+ from .radar_event_expectation_linker import link_events,CONTRACT as LINK_CONTRACT,identify
  by_market={};conflicts=set()
  for record in records[:100]:
   mid=record['market_id']
   if mid in by_market and by_market[mid]!=record:conflicts.add(mid)
   else:by_market[mid]=record
  rows=[deepcopy(by_market[m]) for m in sorted(by_market) if m not in conflicts][:20];event_ids={e['event_id'] for e in events};market_ids={r['market_id'] for r in rows}
- mapping_status='NOT_CONFIGURED';links={}
+ decisions=link_events(events,rows)
+ mapping_status='DETERMINISTIC_EVALUATED';links={}
+ if mapping is None:
+  links={p['expectation_market_id']:p for p in decisions if p['link_status']=='LINKED'}
  if mapping is not None:
-  valid=isinstance(mapping,dict) and len(mapping)<=100 and all(isinstance(e,str) and e in event_ids and isinstance(m,str) and m in market_ids for e,m in mapping.items())
-  if valid and len(set(mapping.values()))==len(mapping):links={m:e for e,m in mapping.items()};mapping_status='AVAILABLE'
-  else:mapping_status='INVALID_MAPPING'
+  expanded={e:([value] if isinstance(value,str) else value) for e,value in mapping.items()} if isinstance(mapping,dict) else {}
+  valid=isinstance(mapping,dict) and len(mapping)<=100 and all(isinstance(e,str) and e in event_ids and isinstance(ms,list) and 0<len(ms)<=20 and all(isinstance(m,str) and m in market_ids for m in ms) for e,ms in expanded.items())
+  all_ids=[m for ms in expanded.values() for m in ms] if valid else []
+  if valid and len(set(all_ids))==len(all_ids):
+   decisions=[identify({**p,'link_status':'LINKED','link_method':'EXACT_CURATED_MAPPING','confidence_class':'HIGH','reason':'EXPLICIT_CURATOR_ASSERTED_RELATIONSHIP','matched_terms':[]}) if p['expectation_market_id'] in expanded.get(p['canonical_event_id'],[]) else identify({**p,'link_status':'NO_MATCH','confidence_class':None,'matched_terms':[],'reason':'NOT_IN_EXPLICIT_CURATED_MAPPING'}) for p in decisions]
+   links={p['expectation_market_id']:p for p in decisions if p['link_status']=='LINKED'};mapping_status='AVAILABLE'
+  else:
+   mapping_status='INVALID_MAPPING'
+   decisions=[identify({**p,'link_status':'INSUFFICIENT_EVIDENCE','confidence_class':None,'matched_terms':[],'reason':'INVALID_EXPLICIT_CURATED_MAPPING'}) for p in decisions]
  for row in rows:
-  event_id=links.get(row['market_id']);row.update(canonical_event_id=event_id,link_status='LINKED' if event_id else 'UNLINKED',link_method='EXACT_CURATED_MAPPING' if event_id else None)
+  row.pop('event_expectation_link',None)
+  link=links.get(row['market_id']);event_id=link['canonical_event_id'] if link else None
+  row.update(canonical_event_id=event_id,link_status='LINKED' if event_id else 'UNLINKED',link_method=link['link_method'] if link else None)
+  if link:row['event_expectation_link']=deepcopy(link)
  enriched=[{**event,'market_expectation_ids':[r['expectation_id'] for r in rows if r['canonical_event_id']==event['event_id']]} for event in events]
- return dict(market_expectation_contract=CONTRACT,market_expectations=rows,expectation_link_status=mapping_status,events=enriched)
+ return dict(market_expectation_contract=CONTRACT,market_expectations=rows,expectation_link_status=mapping_status,event_expectation_link_contract=LINK_CONTRACT,event_expectation_links=decisions,events=enriched)
 
 class NoRedirect(HTTPRedirectHandler):
  def redirect_request(self,*args,**kwargs):raise ExpectationError('REDIRECT_NOT_ALLOWED')
