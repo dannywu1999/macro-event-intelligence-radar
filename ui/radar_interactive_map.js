@@ -24,11 +24,16 @@ function payload(group,language){const zh=language==='zh-TW';return {
  confidence:e.context_geography?.confidence||null,method:e.context_geography?.method||null})),
  more:Math.max(0,group.members.length-3),language:zh?'zh-TW':'en'};}
 function semantic(kind,zh,legacy){return legacy?(zh?'人工展示位置':'Curated presentation point'):kind==='verified'?(zh?'來源支持的事件位置':'Source-supported event location'):kind==='institution'?(zh?'機構總部／參照背景':'Institution headquarters / reference'):(zh?'推測地理脈絡；非事件地點':'Inferred context; not event location');}
+function contextTerm(code,zh){const terms={HIGH:['高','High'],MEDIUM:['中','Medium'],LOW:['低','Low'],EXPLICIT_CONTEXT_MENTION:['明確提及區域','Explicit region mention'],INSTITUTION_JURISDICTION:['由機構管轄範圍推定','Institution jurisdiction inference'],MULTI_REGION:['多個區域','Multiple regions']};return terms[code]?(zh?terms[code][0]:terms[code][1])+' ('+code+')':code;}
 function popupNode(data){const zh=data.language==='zh-TW',root=document.createElement('section');root.className='radar-map-popup';
  function text(tag,value){const n=document.createElement(tag);n.textContent=value;root.appendChild(n);return n;}
- text('strong',data.name+' / '+data.name_zh);text('p',semantic(data.kind,zh,data.legacy));text('p',data.event_count+' '+(zh?'事件':'events'));
- for(const e of data.events){const button=text('button',e.title|| (zh?'未知':'Unknown'));button.type='button';button.dataset.mapEvent=e.event_id;
-  text('p',[e.source,e.institution,e.confidence|| (zh?'未知':'Unknown'),e.method|| (zh?'未知':'Unknown')].filter(Boolean).join(' · '));}
+ text('strong',zh?(data.name_zh||data.name):(data.name||data.name_zh));
+ text('p',data.event_count+' '+(zh?'相關事件':'related events'));
+ for(const e of data.events){const button=text('button',e.title|| (zh?'未知':'Unknown'));button.type='button';button.dataset.mapEvent=e.event_id;button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();document.dispatchEvent(new CustomEvent('radar-map-event',{detail:{eventId:e.event_id}}))});
+  if(e.source)text('p',(zh?'新聞來源：':'News source: ')+e.source);
+  if(e.institution)text('p',(zh?'機構參照：':'Institution reference: ')+e.institution);
+  if(e.confidence||e.method)text('p',(zh?'推測脈絡：':'Inferred context: ')+[e.confidence,e.method].filter(Boolean).map(code=>contextTerm(code,zh)).join(' · '));}
+ text('p',(zh?'地圖標記類型：':'Map marker type: ')+semantic(data.kind,zh,data.legacy));
  if(data.more)text('p','+ '+data.more+' '+(zh?'其他事件':'more'));
  return root;
 }
@@ -58,14 +63,19 @@ function mount(host,view,language,filter){
     attributionControl:false,renderWorldCopies:false,maxZoom:12,cooperativeGestures:true});active=map;
   map.addControl(new lib.NavigationControl({showCompass:false}));map.addControl(new lib.AttributionControl({compact:false}));
   let loaded=false;const timer=setTimeout(()=>{if(!loaded&&canvas.isConnected)unavailable();},18000);
-  map.on('error',()=>{clearTimeout(timer);if(canvas.isConnected)unavailable();});
+  map.on('error',()=>{
+   if(!canvas.isConnected)return;
+   // A single tile or glyph failure after load must not hide an otherwise usable map.
+   if(loaded){state.textContent=zh?'部分底圖圖磚無法取得；互動地圖與事件清單仍可使用。':'Some basemap tiles are unavailable; the interactive map and event list remain usable.';state.dataset.mapState='DEGRADED';return;}
+   clearTimeout(timer);unavailable();
+  });
   map.on('load',()=>{if(failed||!canvas.isConnected)return;loaded=true;clearTimeout(timer);if(fallback)fallback.hidden=true;
    state.textContent=zh?'OpenFreeMap 互動底圖；脈絡錨點不是事件地點。':'OpenFreeMap interactive basemap; context anchors are not event locations.';state.dataset.mapState='READY';
    let shownPopup=null;
    for(const g of groups(view.events).filter(g=>filter==='all'||g.kind===filter)){
     const button=document.createElement('button');button.type='button';button.className='radar-map-pin '+g.kind;button.dataset.markerKind=g.kind;button.dataset.markerReference=zh?g.zh:g.en;
     button.textContent=g.kind==='institution'?'◆':g.kind==='verified'?'●':'◉';button.setAttribute('aria-label',(zh?g.zh:g.en)+' · '+semantic(g.kind,zh,g.legacy)+' · '+g.members.length);
-    const popup=new lib.Popup({closeButton:true,closeOnClick:false,focusAfterOpen:false,maxWidth:'min(330px, calc(100vw - 64px))',offset:24}).setLngLat([g.lon,g.lat]);
+    const popup=new lib.Popup({closeButton:true,closeOnClick:false,focusAfterOpen:false,maxWidth:'min(330px, 40vw)',offset:24}).setLngLat([g.lon,g.lat]);
     function show(){if(shownPopup&&shownPopup!==popup)shownPopup.remove();shownPopup=popup;popup.setDOMContent(popupNode(payload(g,language))).addTo(map);}
     // Touch browsers can synthesize mouseenter before completing a tap. Do not
     // let a hover popup intercept that tap; keyboard focus remains supported.

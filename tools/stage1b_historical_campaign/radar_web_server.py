@@ -130,7 +130,10 @@ class Handler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", "text/css; charset=utf-8" if path.endswith('.css') else "text/javascript; charset=utf-8" if path.endswith('.js') else "text/plain; charset=utf-8")
             self.send_header("Content-Length", str(len(data)))
-            self.send_header("Cache-Control", "public, max-age=3600")
+            # The map controller changes with UI semantics; keep only vendored
+            # MapLibre bytes on the longer cache policy.
+            self.send_header("Cache-Control", "no-cache" if path == "/ui/radar_interactive_map.js"
+                             else "public, max-age=3600")
             self.end_headers();self.wfile.write(data)
         elif path == "/ui/radar_demo_translations.js":
             data = (ROOT / "ui/radar_demo_translations.js").read_bytes()
