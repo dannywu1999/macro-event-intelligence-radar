@@ -40,3 +40,5 @@ COPY ui/radar_market_translations.js ui/radar_market_translations.js
 COPY tools/stage1b_historical_campaign/broad_news_ingestion.py tools/stage1b_historical_campaign/broad_news_ingestion.py
 
 COPY tools/stage1b_historical_campaign/radar_news_freshness.py tools/stage1b_historical_campaign/radar_news_freshness.py
+
+COPY tools/stage1b_historical_campaign/radar_news_intelligence.py tools/stage1b_historical_campaign/radar_news_intelligence.py

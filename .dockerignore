@@ -46,3 +46,5 @@
 !tools/stage1b_historical_campaign/broad_news_ingestion.py
 
 !tools/stage1b_historical_campaign/radar_news_freshness.py
+
+!tools/stage1b_historical_campaign/radar_news_intelligence.py

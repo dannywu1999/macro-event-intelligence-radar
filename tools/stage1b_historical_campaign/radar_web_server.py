@@ -79,6 +79,8 @@ def feed_view(ingestion=None, expectation_sensor=None, market_watch=None) -> dic
             "RADAR_CANONICAL_EVENT_COUNT_INVALID")
     from tools.stage1b_historical_campaign.radar_news_freshness import project
     view['news_freshness'] = project(view)
+    from tools.stage1b_historical_campaign.radar_news_intelligence import project as news_intelligence
+    view['news_intelligence'] = news_intelligence(view)
     return view
 
 
