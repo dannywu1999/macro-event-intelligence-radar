@@ -40,3 +40,9 @@
 !ui/vendor/MAPLIBRE-LICENSE.txt
 
 !tools/stage1b_historical_campaign/radar_prediction_market_watch.py
+
+!ui/radar_market_translations.js
+
+!tools/stage1b_historical_campaign/broad_news_ingestion.py
+
+!tools/stage1b_historical_campaign/radar_news_freshness.py

@@ -218,12 +218,14 @@ class DiscoverySourceTests(unittest.TestCase):
         self.assertEqual(errors,[]);self.assertFalse(worker.is_alive())
         self.assertFalse(self.engine.thread.is_alive())
     def test_environment_optins_are_independent_and_factory_never_fetches(self):
-        with patch.dict(os.environ,{'RADAR_LIVE_EIA':'0','RADAR_LIVE_ECB':'1','RADAR_RUNTIME_ROOT':self.temp.name}),patch.object(eia,'fetch_eia') as first,patch.object(ecb,'fetch_ecb') as second:
+        with patch.dict(os.environ,{'RADAR_LIVE_EIA':'0','RADAR_LIVE_ECB':'1','RADAR_RUNTIME_ROOT':self.temp.name}),patch.object(eia,'fetch_eia') as first,patch.object(ecb,'fetch_ecb',return_value=ECB_RSS) as second:
             engine=sources.DiscoveryIngestion.from_environment()
             try:
                 self.assertEqual(set(engine.sources),{ecb.SOURCE})
-                self.assertEqual(engine.read_view(radar,self.paths)['news_item_count'],5)
-                first.assert_not_called();second.assert_not_called()
+                first.assert_not_called();second.assert_not_called()  # factory itself does not acquire
+                self.assertTrue(engine.request_triggered)
+                self.assertEqual(engine.read_view(radar,self.paths)['news_item_count'],8)
+                first.assert_not_called();second.assert_called_once()
                 self.assertIsNone(engine.thread)
             finally:engine.close()
 

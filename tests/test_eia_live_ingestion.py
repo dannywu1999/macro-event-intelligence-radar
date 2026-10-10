@@ -213,24 +213,31 @@ class LocalDeploymentTests(unittest.TestCase):
                 release_fetch.set();server.shutdown();server.server_close();thread.join(3);engine.close()
             self.assertFalse(engine.thread.is_alive());self.assertFalse(thread.is_alive())
 
-    def test_enabled_canonical_serve_starts_one_worker_and_shutdown_closes_it(self):
+    def test_enabled_canonical_serve_requests_refresh_without_background_worker(self):
         with tempfile.TemporaryDirectory(prefix='eia-serve-') as tmp,patch.object(app,'HOST','127.0.0.1'),patch.object(app,'PORT',0),patch.dict(os.environ,{'RADAR_LIVE_EIA':'1'}):
             ready=threading.Event();errors=[]
             def fetch():ready.set();return RSS
-            engine=live.EiaIngestion(bundle=BUNDLE,runtime_root=tmp,fetcher=fetch)
+            from tools.stage1b_historical_campaign.live_source_ingestion import DiscoveryIngestion
+            source=live.EiaIngestion(bundle=BUNDLE,runtime_root=tmp,fetcher=fetch)
+            engine=DiscoveryIngestion([source],bundle=BUNDLE,runtime_root=tmp,request_triggered=True)
             server=app.bind_server()
             def run():
                 try:app.serve()
                 except BaseException as error:errors.append(error)
-            with patch.object(app,'bind_server',return_value=server),patch.object(live.EiaIngestion,'from_environment',return_value=engine) as factory:
+            with patch.object(app,'bind_server',return_value=server),patch.object(DiscoveryIngestion,'from_environment',return_value=engine) as factory:
                 thread=threading.Thread(target=run,daemon=True);thread.start()
                 try:
+                    # Serving starts without acquisition; a Radar API read triggers it.
+                    client=http.client.HTTPConnection('127.0.0.1',server.server_port,timeout=5)
+                    try:
+                        client.request('GET','/api/app/radar');response=client.getresponse();self.assertEqual(response.status,200);response.read()
+                    finally:client.close()
                     self.assertTrue(ready.wait(2))
                     factory.assert_called_once()
                     self.assertIs(server.live_ingestion,engine)
                 finally:
                     server.shutdown();thread.join(3);engine.close()
             self.assertEqual(errors,[])
-            self.assertFalse(thread.is_alive());self.assertFalse(engine.thread.is_alive())
+            self.assertFalse(thread.is_alive());self.assertIsNone(engine.thread);self.assertIsNone(source.thread)
 
 if __name__=='__main__':unittest.main()

@@ -76,6 +76,8 @@ def feed_view(ingestion=None, expectation_sensor=None, market_watch=None) -> dic
     complete = view.get("canonical_event_projection_status") == "AVAILABLE"
     require((type(count) is int and count == len(view["events"])) if complete else count is None,
             "RADAR_CANONICAL_EVENT_COUNT_INVALID")
+    from tools.stage1b_historical_campaign.radar_news_freshness import project
+    view['news_freshness'] = project(view)
     return view
 
 
@@ -103,7 +105,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def _html(self) -> None:
         showcase = any(os.environ.get(name, "").strip() == "1"
-                       for name in ("RADAR_DEMO_MODE", "RADAR_LIVE_EIA", "RADAR_LIVE_ECB", "RADAR_LIVE_POLYMARKET", "RADAR_LIVE_MARKET_WATCH"))
+                       for name in ("RADAR_DEMO_MODE", "RADAR_LIVE_EIA", "RADAR_LIVE_ECB", "RADAR_LIVE_NEWS", "RADAR_LIVE_GUARDIAN", "RADAR_LIVE_POLYMARKET", "RADAR_LIVE_MARKET_WATCH"))
         page_file = ROOT / "ui/radar_public_showcase_v1.html" if showcase or not UI.is_file() else UI
         page = page_file.read_text(encoding="utf-8")
         # Change only this read-only response's legacy local-operation labels.
@@ -135,8 +137,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Cache-Control", "no-cache" if path == "/ui/radar_interactive_map.js"
                              else "public, max-age=3600")
             self.end_headers();self.wfile.write(data)
-        elif path == "/ui/radar_demo_translations.js":
-            data = (ROOT / "ui/radar_demo_translations.js").read_bytes()
+        elif path in {"/ui/radar_demo_translations.js", "/ui/radar_market_translations.js"}:
+            data = (ROOT / path.lstrip("/")).read_bytes()
             self.send_response(200)
             self.send_header("Content-Type", "text/javascript; charset=utf-8")
             self.send_header("Content-Length", str(len(data)))
@@ -206,18 +208,11 @@ def serve(open_browser: bool = False, *, radar_only: bool = True) -> None:
     print(f"RADAR_ADAPTER_SHA256={source_sha}", flush=True)
     print("RADAR_CANONICAL_EVENT_CONTRACT=CANONICAL_EVENT_V0", flush=True)
     server = bind_server(radar_only=True)
-    if os.environ.get("RADAR_LIVE_ECB", "").strip() == "1":
+    if any(os.environ.get(name, '').strip() == '1' for name in
+           ('RADAR_LIVE_EIA', 'RADAR_LIVE_ECB', 'RADAR_LIVE_NEWS', 'RADAR_LIVE_GUARDIAN')):
         from tools.stage1b_historical_campaign.live_source_ingestion import DiscoveryIngestion
         try:
             server.live_ingestion = DiscoveryIngestion.from_environment()
-        except Exception:
-            server.server_close()
-            raise
-    elif os.environ.get("RADAR_LIVE_EIA", "").strip() == "1":
-        # Preserve the existing EIA-only launch/factory and environment contract.
-        from tools.stage1b_historical_campaign.eia_live_ingestion import EiaIngestion
-        try:
-            server.live_ingestion = EiaIngestion.from_environment()
         except Exception:
             server.server_close()
             raise

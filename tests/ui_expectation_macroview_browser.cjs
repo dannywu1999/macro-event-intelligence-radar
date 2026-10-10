@@ -10,7 +10,7 @@ const {chromium}=require(input.playwright);
    const context=await browser.newContext({locale,viewport:{width,height:1000}});
    await context.route('**/*',route=>{const url=route.request().url();return url.startsWith(input.origin+'/')?route.continue():route.abort()});
    const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(String(e)));
-   await page.goto(input.origin+'/#/feed');await page.locator('.event-card').first().waitFor();
+   await page.goto(input.origin+'/#/feed');await page.locator('.event-card').first().waitFor();for(const d of await page.locator('.event-intelligence-detail').all())await d.locator(':scope > summary').click();
    assert.equal(await page.locator('.event-card').count(),input.events);assert.equal(await page.locator('.official-record').count(),2);assert.equal(await page.locator('.macroview-preview').count(),input.events);
    assert.equal(await page.locator('.expectation-panel.unlinked-expectations').count(),1);assert.equal(await page.locator('.event-card[data-event-status="UNVERIFIED_NEWS"]').count(),input.events);
    assert.equal(await page.locator('[data-evidence-status="OFFICIAL_CONFIRMED"]').count(),2);

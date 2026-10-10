@@ -83,7 +83,8 @@ class LiveSourceIngestion:
             with self.lock:
                 self.status['last_attempt_at'] = observed
             try:
-                incoming = self.parser(self.fetcher(), observed)
+                data = self.fetcher()
+                incoming = self.parser(data, self.now_iso())
                 with self.lock:
                     merged = dict(self.rows)
                     for row in incoming:
@@ -127,16 +128,16 @@ class LiveSourceIngestion:
 
 
 class DiscoveryIngestion:
-    """One owned worker; isolated source stores, deadlines and last-valid states.
+    """One refresh coordinator; isolated source stores, deadlines and last-valid states.
 
-    Source fetches are sequential and individually bounded. API reads only the
-    atomically published combined CSV/status snapshot; reads never fetch/write.
+    Source fetches are sequential and individually bounded. Environment launches use single-flight request-triggered TTL refresh.
+    Explicit test/legacy construction retains the background-loop option.
     """
-    def __init__(self, sources, *, bundle, runtime_root=None, clock=time.monotonic):
+    def __init__(self, sources, *, bundle, runtime_root=None, clock=time.monotonic, request_triggered=False):
         from .eia_live_ingestion import EiaIngestion, IngestionError, reference
         self.bundle = Path(bundle).resolve()
         self.sources = {source.source: source for source in sources}
-        if not self.sources or len(self.sources) != len(sources) or not set(self.sources) <= {EIA_SOURCE, ECB_SOURCE}:
+        if not self.sources or len(self.sources) != len(sources) or not set(self.sources) <= {EIA_SOURCE, ECB_SOURCE, 'Global Voices', 'Guardian World'}:
             raise IngestionError('DISCOVERY_SOURCE_CONFIGURATION_INVALID')
         # The existing immutable EIA bundle remains the product restart fallback.
         self.baseline = EiaIngestion.snapshot_rows(self.bundle)
@@ -149,6 +150,7 @@ class DiscoveryIngestion:
         self.session = Path(tempfile.mkdtemp(prefix='discovery-', dir=base))
         self.news_path = self.session/'rss_headlines_discovery_runtime.csv'
         self.lock, self.refresh_lock = threading.RLock(), threading.Lock()
+        self.request_triggered = request_triggered
         self.clock, self.deadlines = clock, {name: 0.0 for name in self.sources}
         self.stop_event, self.thread = threading.Event(), None
         self.statuses = {}
@@ -164,7 +166,13 @@ class DiscoveryIngestion:
                 sources.append(EiaIngestion.from_environment())
             if os.environ.get('RADAR_LIVE_ECB', '').strip() == '1':
                 sources.append(EcbIngestion.from_environment())
-            return cls(sources, bundle=BUNDLE, runtime_root=os.environ.get('RADAR_RUNTIME_ROOT') or None)
+            if os.environ.get('RADAR_LIVE_NEWS', '').strip() == '1':
+                from .broad_news_ingestion import BroadNewsIngestion
+                sources.append(BroadNewsIngestion.from_environment('Global Voices'))
+            if os.environ.get('RADAR_LIVE_GUARDIAN', '').strip() == '1':
+                from .broad_news_ingestion import BroadNewsIngestion
+                sources.append(BroadNewsIngestion.from_environment('Guardian World'))
+            return cls(sources, bundle=BUNDLE, runtime_root=os.environ.get('RADAR_RUNTIME_ROOT') or None, request_triggered=True)
         except BaseException:
             for source in sources:
                 source.close()
@@ -185,7 +193,7 @@ class DiscoveryIngestion:
             self._write(rows)
             self.statuses = statuses
 
-    def refresh(self, name=None):
+    def refresh(self, name=None, *, due_only=False):
         if not self.refresh_lock.acquire(blocking=False):
             return False
         results = []
@@ -195,6 +203,8 @@ class DiscoveryIngestion:
                 if current not in self.sources:
                     raise ValueError('SOURCE_NOT_ENABLED')
                 source = self.sources[current]
+                if due_only and self.clock() < self.deadlines[current]:
+                    continue
                 succeeded = source.refresh()
                 self.deadlines[current] = self.clock() + source.interval
                 try:
@@ -215,6 +225,8 @@ class DiscoveryIngestion:
             self.refresh_lock.release()
 
     def read_view(self, adapter, paths):
+        if self.request_triggered:
+            self.refresh(due_only=True)  # single-flight, one bounded request per due source
         with self.lock:
             view = adapter.build_radar_view(replace(paths, news=self.news_path,
                     official=paths.official or self.bundle/'official-packet.json'))
@@ -224,6 +236,8 @@ class DiscoveryIngestion:
             return view
 
     def start(self):
+        if self.request_triggered:
+            return  # no always-on loop; Render wake-up is driven by a Radar read
         with self.lock:
             if self.thread is not None:
                 return

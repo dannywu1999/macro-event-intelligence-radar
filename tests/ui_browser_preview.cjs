@@ -11,7 +11,7 @@ const {chromium}=require(input.playwright);
    await context.route('**/*',route=>{const url=new URL(route.request().url());if(url.origin===input.origin)return route.continue();blocked.push(url.href);return route.abort()});
    const page=await context.newPage();
    await page.goto(input.origin+'/#/feed');
-   await page.locator('.event-card').first().waitFor();
+   await page.locator('.event-card').first().waitFor();for(const d of await page.locator('.event-intelligence-detail').all())await d.locator(':scope > summary').click();
    assert.equal(await page.locator('.event-card').count(),(input.counts||[5,5,1])[1]);
    assert.equal(await page.locator('.official-record').count(),1);
    if(input.live)assert.equal(await page.locator('[data-live-status]').getAttribute('data-live-status'),'LIVE');
@@ -64,7 +64,7 @@ const {chromium}=require(input.playwright);
     assert.equal(await page.locator('#event-'+eventId+' .event-timeline').getAttribute('open'),'');
     assert.equal(await page.locator('#event-'+eventId).getAttribute('data-event-status'),'UNVERIFIED_NEWS');
     // Reset to the API's initial disclosure state before baseline timeline checks.
-    await page.reload();await page.locator('.event-card').first().waitFor();
+    await page.reload();await page.locator('.event-card').first().waitFor();for(const d of await page.locator('.event-intelligence-detail').all())await d.locator(':scope > summary').click();
    }else assert.ok(await page.locator('.map-empty').isVisible());
    results.push(`${locale}/${mapped?'explicit-synthetic-map-keyboard':'zero-map'}:PASS`);
    for(const width of [375,430,1024,1366,1440]){
@@ -82,7 +82,7 @@ const {chromium}=require(input.playwright);
    await button.focus();await page.keyboard.press('Enter');
    const selected=locale==='zh-TW'?'en':'zh-TW';
    assert.equal(await page.locator('html').getAttribute('lang'),selected);
-   await page.reload();await page.locator('.event-card').first().waitFor();
+   await page.reload();await page.locator('.event-card').first().waitFor();for(const d of await page.locator('.event-intelligence-detail').all())await d.locator(':scope > summary').click();
    assert.equal(await page.locator('html').getAttribute('lang'),selected);
    const summary=page.locator('.event-main .provenance summary').first();
    await summary.focus();await page.keyboard.press('Enter');

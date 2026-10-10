@@ -79,6 +79,7 @@ class ProductizationUITests(unittest.TestCase):
         self.assertTrue(self.result["popupFocus"])
         self.assertTrue(self.result["popupScroll"])
         self.assertTrue(self.result["popupTimeline"])
+        self.assertTrue(self.result["popupIntelligence"])
         self.assertTrue(self.result["popupProvenance"])
 
 

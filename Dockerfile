@@ -34,3 +34,9 @@ COPY ui/vendor/maplibre-gl.css ui/vendor/maplibre-gl.css
 COPY ui/vendor/MAPLIBRE-LICENSE.txt ui/vendor/MAPLIBRE-LICENSE.txt
 
 COPY tools/stage1b_historical_campaign/radar_prediction_market_watch.py tools/stage1b_historical_campaign/radar_prediction_market_watch.py
+
+COPY ui/radar_market_translations.js ui/radar_market_translations.js
+
+COPY tools/stage1b_historical_campaign/broad_news_ingestion.py tools/stage1b_historical_campaign/broad_news_ingestion.py
+
+COPY tools/stage1b_historical_campaign/radar_news_freshness.py tools/stage1b_historical_campaign/radar_news_freshness.py
