@@ -98,6 +98,73 @@ class V4Sources(unittest.TestCase):
   with patch.object(news,'build_opener',return_value=opener),patch.object(news.ssl,'create_default_context',wraps=news.ssl.create_default_context) as tls:
    self.assertEqual(news.fetch_rss('Global Voices'),RSS);tls.assert_called_once();opener.open.assert_called_once();response.read.assert_called_once_with(news.MAX_BYTES+1)
 
+ def test_v41_geopolitical_and_policy_false_negatives(self):
+  # First example is a real rejected title from the bounded BBC evaluation;
+  # BBC metadata is not admitted to the public candidate without permission.
+  admitted=['Ethiopia warns Eritrea it will defend itself after troops cross border',
+   'Ukrainian strikes disrupt regional infrastructure', 'Houthi attacks on Saudi airport',
+   'Fed holds rates', 'Powell discusses jobs report', 'Trader convicted of rigging rates',
+   'Government internet shutdown during protests', 'White House announces tax policy']
+  rejected=['Local workers strike at a cafe', 'Music star cancels show due to security threat',
+   'Ukraine football team wins match', 'Dating advice about your salary', 'Film wins award', 'Fed up with street fashion', 'Powell stars in a new film',
+   'Trader launches fashion brand', 'Internet radio celebrates local culture']
+  for title in admitted:
+   with self.subTest(title=title):self.assertTrue(news.macro_relevant_title(title))
+  for title in rejected:
+   with self.subTest(title=title):self.assertFalse(news.macro_relevant_title(title))
+ def test_v41_cycle_metrics_account_for_rejections_and_duplicates(self):
+  item=RSS.split(b'<channel>')[1].split(b'</channel>')[0]
+  items=[item,item,item.replace(b'Tariffs &amp; policy',b'Local music performance'),
+   item.replace(b'https://globalvoices.org/',b'https://evil.example/'),
+   item.replace(b'<dc:creator>Writer A</dc:creator>',b''),item.replace(b'<title>Tariffs &amp; policy</title>',b'')]
+  data=b'<rss xmlns:dc="http://purl.org/dc/elements/1.1/"><channel>'+b''.join(items)+b'</channel></rss>'
+  rows=news.parse_rss(data,NOW.isoformat(),source='Global Voices');d=rows.diagnostics
+  self.assertEqual(len(rows),1);self.assertEqual(tuple(rows[0]),FIELDS)
+  self.assertEqual(d['input_item_count'],6);self.assertEqual(d['accepted_item_count'],1)
+  self.assertEqual(d['rejected_by_reason'],dict(DUPLICATE_URL=1,NOT_MACRO_RELEVANT=1,UNSAFE_SOURCE_URL=1,MISSING_ATTRIBUTION=1,MISSING_TITLE=1))
+  self.assertEqual(d['last_24h_selected_count'],1);self.assertEqual(d['last_48h_selected_count'],1)
+  self.assertEqual(d['input_item_count'],d['accepted_item_count']+sum(d['rejected_by_reason'].values()))
+ def test_v41_cycle_survives_failure_without_claiming_new_success(self):
+  v=self.view();state=v['discovery_sources']['Global Voices'];cycle=copy.deepcopy(state['last_successful_cycle']);success=state['last_success_at']
+  self.fetch.side_effect=TimeoutError();self.clock[0]+=1800;v=self.view();state=v['discovery_sources']['Global Voices']
+  self.assertEqual(state['status'],'LAST_VALID_FALLBACK');self.assertEqual(state['reason'],'REQUEST_TIMEOUT')
+  self.assertEqual(state['last_successful_cycle'],cycle);self.assertEqual(state['last_success_at'],success)
+  self.assertEqual(state['new_article_count'],0);self.view();self.assertEqual(self.fetch.call_count,2)
+ def test_v41_disabled_general_news_source_visible_without_acquisition(self):
+  v=self.view();self.assertFalse(v['discovery_sources']['Guardian World']['enabled']);self.assertEqual(v['discovery_sources']['Guardian World']['status'],'DISABLED')
+  v=server.feed_view();self.assertEqual(v['discovery_sources']['Global Voices']['status'],'DISABLED')
+ def test_v41_unknown_and_future_publications_not_recent_in_metrics(self):
+  for date in [b'not a date',b'Sun, 11 Oct 2026 04:00:00 GMT']:
+   rows=news.parse_rss(RSS.replace(b'Sat, 10 Oct 2026 04:00:00 GMT',date),NOW.isoformat(),source='Global Voices')
+   self.assertEqual(rows.diagnostics['last_24h_selected_count'],0);self.assertEqual(rows.diagnostics['last_48h_selected_count'],0)
+
+ def test_v41_un_source_credit_notification_gate_and_default_no_fetch(self):
+  with patch.dict(os.environ,{},clear=True),self.assertRaisesRegex(news.IngestionError,'CREDIT_AND_NOTIFICATION'):
+   news.BroadNewsIngestion.from_environment('UN News')
+  with patch.dict(os.environ,{'RADAR_LIVE_UN_NEWS':'1','RADAR_UN_NEWS_REUSE_ACKNOWLEDGED':'1','RADAR_RUNTIME_ROOT':self.temp.name},clear=True):
+   e=DiscoveryIngestion.from_environment()
+   try:self.assertEqual(list(e.sources),['UN News']);self.assertTrue(e.request_triggered);self.assertIsNone(e.thread)
+   finally:e.close()
+ def test_v41_un_news_original_url_five_columns_and_unverified(self):
+  feed=RSS.replace(b'https://globalvoices.org/2026/10/10/policy/',b'https://news.un.org/feed/view/en/story/2026/10/123').replace(b'<dc:creator>Writer A</dc:creator>',b'<guid isPermaLink="true">https://news.un.org/en/story/2026/10/123</guid>')
+  rows=news.parse_rss(feed,NOW.isoformat(),source='UN News');self.assertEqual(tuple(rows[0]),FIELDS);self.assertEqual(rows[0]['source_url'],'https://news.un.org/en/story/2026/10/123')
+  source=news.BroadNewsIngestion('UN News',runtime_root=self.temp.name,fetcher=Mock(return_value=feed))
+  e=DiscoveryIngestion([self.source,source],bundle=BUNDLE,runtime_root=self.temp.name,request_triggered=True)
+  try:
+   v=e.read_view(radar,self.paths);a=next(a for a in v['items'] if a['news_source']['name']=='UN News')
+   self.assertEqual(a['verification_status'],'UNVERIFIED_NEWS');self.assertIsNone(a['event_occurred_at'])
+   event=next(e for e in v['events'] if a['article_reference'] in e['article_references']);self.assertEqual(event['official_evidence_count'],0)
+   self.assertEqual(freshness.project(v,now=NOW)['attribution'][a['article_reference']]['source'],'UN News')
+  finally:e.close()
+ def test_v41_un_guid_substitution_not_used(self):
+  feed=RSS.replace(b'https://globalvoices.org/2026/10/10/policy/',b'https://news.un.org/feed/view/en/story/2026/10/123').replace(b'<dc:creator>Writer A</dc:creator>',b'<guid>https://news.un.org/en/story/2026/10/other</guid>')
+  self.assertEqual(news.parse_rss(feed,NOW.isoformat(),source='UN News')[0]['source_url'],'https://news.un.org/feed/view/en/story/2026/10/123')
+ def test_v41_no_new_endpoint_or_guardian_implicitly_enabled(self):
+  with patch.dict(os.environ,{'RADAR_LIVE_NEWS':'1','RADAR_RUNTIME_ROOT':self.temp.name},clear=True):
+   e=DiscoveryIngestion.from_environment()
+   try:self.assertEqual(set(e.sources),{'Global Voices'});self.assertFalse(e.statuses['UN News']['enabled']);self.assertFalse(e.statuses['Guardian World']['enabled'])
+   finally:e.close()
+
 class V4Freshness(unittest.TestCase):
  def view(self):
   articles=[]
@@ -154,3 +221,22 @@ class V4Render(unittest.TestCase):
   self.assertIn('whitespace normalized',r['en']);self.assertIn('第三方影音',r['zh']);self.assertTrue(r['unchanged'])
  def test_untrusted_news_escape_in_new_section(self):
   v=copy.deepcopy(self.ui.view);v['items'][0]['title']='<img src=x onerror=alert(1)>';v['news_freshness']=freshness.project(v,now=NOW);r=self.ui.render(view=v);self.assertNotIn('<img src=x',r['en']);self.assertIn('&lt;img',r['en'])
+
+ def test_v41_disabled_and_failed_source_diagnostics_render_safely(self):
+  v=copy.deepcopy(self.ui.view);v['discovery_sources']={'Global Voices':dict(enabled=False,status='DISABLED',last_success_at=None,new_article_count=0),
+   'EIA Today in Energy':dict(enabled=True,status='SNAPSHOT_FALLBACK',last_success_at=None,new_article_count=0,reason='REQUEST_TIMEOUT',last_successful_cycle=None)}
+  v['news_freshness']=freshness.project(v,now=NOW);r=self.ui.render(view=v)
+  self.assertIn('Enabled: false',r['en']);self.assertIn('Latest acquisition error: REQUEST_TIMEOUT',r['en'])
+  self.assertIn('已啟用: false',r['zh']);self.assertIn('最近取得錯誤: REQUEST_TIMEOUT',r['zh'])
+  v['discovery_sources']['EIA Today in Energy']['reason']='<img src=x onerror=alert(1)>'
+  r=self.ui.render(view=v);self.assertNotIn('<img src=x',r['en']);self.assertIn('&lt;img',r['en'])
+
+ def test_v41_un_attribution_visible_in_both_languages(self):
+  v=copy.deepcopy(self.ui.view);v['items'][0]['news_source']={'name':'UN News','url':'https://news.un.org/en/story/2026/10/123'};v['news_freshness']=freshness.project(v,now=NOW)
+  r=self.ui.render(view=v);self.assertIn('Headline discovery from UN News (United Nations)',r['en']);self.assertIn('不自動構成官方事實確認',r['zh']);self.assertTrue(r['unchanged'])
+
+ def test_v41_selection_metrics_have_human_labels_not_raw_json(self):
+  v=copy.deepcopy(self.ui.view);v['discovery_sources']={'UN News':dict(enabled=True,status='LIVE',new_article_count=1,last_success_at=NOW.isoformat(),last_successful_cycle=dict(input_item_count=30,accepted_item_count=9,publication_unknown_count=0,rejected_by_reason={'NOT_MACRO_RELEVANT':21}))}
+  v['news_freshness']=freshness.project(v,now=NOW);r=self.ui.render(view=v)
+  self.assertIn('Received feed items: 30',r['en']);self.assertIn('Selected items: 9',r['en']);self.assertIn('No matched macro topic in title: 21',r['en'])
+  self.assertIn('收到的 Feed 項目: 30',r['zh']);self.assertIn('選入項目: 9',r['zh']);self.assertNotIn('input_item_count',r['en'])

@@ -107,7 +107,7 @@ is needed. Runtime refresh state is ephemeral; the validated bundle is always
 the restart fallback. EIA acquisition uses HTTPS with normal certificate checking,
 one request per cycle, a 10-second transport timeout and no redirects/retries.
 
-Free hosting sleep pauses process-owned refresh. This is not guaranteed 24/7
+Free hosting sleep prevents reads/acquisition; the next due Radar read triggers refresh. This is not guaranteed 24/7
 ingestion. Verify cloud acquisition status after deployment; a local test does
 not prove Render can reach EIA. A fetch failure degrades safely without affecting
 `/healthz`. The default without `RADAR_LIVE_EIA=1` remains the fixed snapshot.
@@ -172,11 +172,11 @@ one request per source cycle, a 10-second timeout, a 2 MiB response cap and
 no redirects/retries. Only HTTPS article links on `www.ecb.europa.eu` are
 accepted. Missing/timezone-less source dates do not become publication dates.
 
-When ECB is enabled, a single owned worker schedules enabled sources separately.
+Environment-launched News sources use one request-triggered single-flight coordinator with separate TTL deadlines.
 Each source has a separate temporary state directory and article limit; the
 combined CSV is atomically published under another unique temporary directory.
-Only ingestion writes ephemeral CSVs. API reads never fetch or write. Shut down
-the web process normally to stop its owned worker; no external scheduler is needed.
+Only ingestion writes ephemeral CSVs; a due Radar API read can trigger bounded acquisition.
+No News background thread or external scheduler is required.
 Do not point runtime storage inside the bundled snapshot.
 
 `live_ingestion` remains the EIA acquisition object (its article count is not the
@@ -234,3 +234,7 @@ The public Git release manifest separates `files` (reviewed working-tree bytes)
 from `git_clean_files` (expected committed bytes after Git line-ending filtering).
 The prepared publication guard verifies both; source snapshots are not rewritten
 and no Git/system configuration is changed.
+
+
+Current News discovery flags, optional UN News obligations, failure diagnostics and
+Render cold-start semantics: [RADAR_V4_FRESHNESS.md](RADAR_V4_FRESHNESS.md). Broad discovery is not enabled by EIA/ECB flags alone.

@@ -17,6 +17,7 @@ import time
 FIELDS = ('observed_time', 'event_time', 'headline_or_text', 'source_name', 'source_url')
 EIA_SOURCE = 'EIA Today in Energy'
 ECB_SOURCE = 'ECB Press'
+BROAD_SOURCES = ('Global Voices', 'UN News', 'Guardian World')
 TIMEOUT = 10
 
 
@@ -85,6 +86,7 @@ class LiveSourceIngestion:
             try:
                 data = self.fetcher()
                 incoming = self.parser(data, self.now_iso())
+                cycle = getattr(incoming, 'diagnostics', dict(parsed_item_count=len(incoming)))
                 with self.lock:
                     merged = dict(self.rows)
                     for row in incoming:
@@ -98,7 +100,7 @@ class LiveSourceIngestion:
                     self._write(kept)
                     self.rows = kept
                     self.status.update(status='LIVE', last_success_at=self.now_iso(), article_count=len(kept),
-                                       new_article_count=added, reason=None)
+                                       new_article_count=added, reason=None, last_successful_cycle=cycle)
                 return True
             except Exception as error:
                 with self.lock:
@@ -137,7 +139,7 @@ class DiscoveryIngestion:
         from .eia_live_ingestion import EiaIngestion, IngestionError, reference
         self.bundle = Path(bundle).resolve()
         self.sources = {source.source: source for source in sources}
-        if not self.sources or len(self.sources) != len(sources) or not set(self.sources) <= {EIA_SOURCE, ECB_SOURCE, 'Global Voices', 'Guardian World'}:
+        if not self.sources or len(self.sources) != len(sources) or not set(self.sources) <= {EIA_SOURCE, ECB_SOURCE, *BROAD_SOURCES}:
             raise IngestionError('DISCOVERY_SOURCE_CONFIGURATION_INVALID')
         # The existing immutable EIA bundle remains the product restart fallback.
         self.baseline = EiaIngestion.snapshot_rows(self.bundle)
@@ -169,6 +171,9 @@ class DiscoveryIngestion:
             if os.environ.get('RADAR_LIVE_NEWS', '').strip() == '1':
                 from .broad_news_ingestion import BroadNewsIngestion
                 sources.append(BroadNewsIngestion.from_environment('Global Voices'))
+            if os.environ.get('RADAR_LIVE_UN_NEWS', '').strip() == '1':
+                from .broad_news_ingestion import BroadNewsIngestion
+                sources.append(BroadNewsIngestion.from_environment('UN News'))
             if os.environ.get('RADAR_LIVE_GUARDIAN', '').strip() == '1':
                 from .broad_news_ingestion import BroadNewsIngestion
                 sources.append(BroadNewsIngestion.from_environment('Guardian World'))
@@ -184,7 +189,8 @@ class DiscoveryIngestion:
 
     def _publish(self):
         rows = {(row['source_name'], self.reference(row['source_url'])): row for row in self.baseline}
-        statuses = {EIA_SOURCE: disabled_status(EIA_SOURCE, len(self.baseline)), ECB_SOURCE: disabled_status(ECB_SOURCE)}
+        statuses = {EIA_SOURCE: disabled_status(EIA_SOURCE, len(self.baseline)), ECB_SOURCE: disabled_status(ECB_SOURCE),
+                    **{name: disabled_status(name) for name in BROAD_SOURCES}}
         for name, source in self.sources.items():
             with source.lock:
                 rows.update(((name, key), dict(row)) for key, row in source.rows.items())

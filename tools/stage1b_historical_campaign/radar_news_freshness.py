@@ -29,6 +29,8 @@ def project(view, *, now=None):
         host = urlsplit(url).hostname
         if host == 'globalvoices.org' and name.startswith('Global Voices · '):
             attributions[ref] = dict(source='Global Voices', author=name.split(' · ',1)[1], license_url='https://creativecommons.org/licenses/by/3.0/')
+        elif host == 'news.un.org' and name.startswith('UN News'):
+            attributions[ref] = dict(source='UN News', author=name.split(' · ',1)[1] if ' · ' in name else None, license_url=None)
         elif host == 'www.theguardian.com' and name.startswith('Guardian World'):
             attributions[ref] = dict(source='Guardian World', author=name.split(' · ',1)[1] if ' · ' in name else None, license_url=None)
     source_checks = {}

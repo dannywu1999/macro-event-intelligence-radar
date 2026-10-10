@@ -51,7 +51,7 @@ class DiscoverySourceTests(unittest.TestCase):
     def test_startup_separate_statuses_and_no_fetch_until_refresh(self):
         view=self.view()
         self.assertEqual(view['news_item_count'],5)
-        self.assertEqual([state['status'] for state in view['discovery_sources'].values()],['STARTING','STARTING'])
+        self.assertEqual([state['status'] for state in view['discovery_sources'].values() if state['enabled']],['STARTING','STARTING'])
         self.eia_fetch.assert_not_called();self.ecb_fetch.assert_not_called()
         self.assertEqual(view['live_ingestion']['source'],eia.SOURCE)
     def test_combined_fixture_same_normal_contract_and_counts(self):

@@ -50,7 +50,7 @@ The existing Python package paths are preserved for import compatibility.
 
 The container is non-root, and the application only serves its UI, Radar API
 and minimal `GET /healthz`. Mutation methods are rejected; no legacy collectors or
-administrative runtime are included. The opt-in EIA refresh thread belongs to the web process.
+administrative runtime are included. Opt-in News sources use single-flight, request-triggered TTL refresh in the web process.
 
 ## Run and deploy
 
@@ -72,8 +72,8 @@ This independent demonstration is **not endorsed by EIA**.
 
 ## Cloud Live EIA Ingestion V1
 
-Enable `RADAR_LIVE_EIA=1` for one EIA Today in Energy RSS fetch on startup and
-periodic refresh while the service is active. `RADAR_EIA_REFRESH_SECONDS=1800`
+Enable `RADAR_LIVE_EIA=1` for one EIA Today in Energy RSS fetch on the first due
+Radar read; later reads refresh only after the source TTL. `RADAR_EIA_REFRESH_SECONDS=1800`
 (default; minimum 300, maximum 86400) controls the interval.
 `RADAR_EIA_MAX_ARTICLES=100` controls total retention (5 to 1000). All five
 validated bundled articles are pinned; additional articles are retained newest
@@ -215,3 +215,7 @@ The public Git release manifest separates `files` (reviewed working-tree bytes)
 from `git_clean_files` (expected committed bytes after Git line-ending filtering).
 The prepared publication guard verifies both; source snapshots are not rewritten
 and no Git/system configuration is changed.
+
+
+Current News discovery flags, optional UN News obligations, failure diagnostics and
+Render cold-start semantics: [RADAR_V4_FRESHNESS.md](docs/RADAR_V4_FRESHNESS.md). Broad discovery is not enabled by EIA/ECB flags alone.

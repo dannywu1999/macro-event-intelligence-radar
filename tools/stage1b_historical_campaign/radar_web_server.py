@@ -41,9 +41,10 @@ def feed_view(ingestion=None, expectation_sensor=None, market_watch=None) -> dic
                                  'last_attempt_at': None, 'last_success_at': None,
                                  'refresh_interval_seconds': None, 'article_count': view.get('item_count'),
                                  'new_article_count': 0, 'reason': None}
-        from tools.stage1b_historical_campaign.live_source_ingestion import disabled_status, EIA_SOURCE, ECB_SOURCE
+        from tools.stage1b_historical_campaign.live_source_ingestion import disabled_status, EIA_SOURCE, ECB_SOURCE, BROAD_SOURCES
         view['discovery_sources'] = {EIA_SOURCE: dict(view['live_ingestion']),
-                                     ECB_SOURCE: disabled_status(ECB_SOURCE)}
+                                     ECB_SOURCE: disabled_status(ECB_SOURCE),
+                                     **{name: disabled_status(name) for name in BROAD_SOURCES}}
     require(isinstance(view, dict) and isinstance(view.get("events"), list)
             and view.get("canonical_event_contract") == "CANONICAL_EVENT_V0",
             "RADAR_CANONICAL_PROJECTION_UNAVAILABLE:RESTART_RADAR_ONLY_SERVER")
@@ -105,7 +106,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def _html(self) -> None:
         showcase = any(os.environ.get(name, "").strip() == "1"
-                       for name in ("RADAR_DEMO_MODE", "RADAR_LIVE_EIA", "RADAR_LIVE_ECB", "RADAR_LIVE_NEWS", "RADAR_LIVE_GUARDIAN", "RADAR_LIVE_POLYMARKET", "RADAR_LIVE_MARKET_WATCH"))
+                       for name in ("RADAR_DEMO_MODE", "RADAR_LIVE_EIA", "RADAR_LIVE_ECB", "RADAR_LIVE_NEWS", "RADAR_LIVE_UN_NEWS", "RADAR_LIVE_GUARDIAN", "RADAR_LIVE_POLYMARKET", "RADAR_LIVE_MARKET_WATCH"))
         page_file = ROOT / "ui/radar_public_showcase_v1.html" if showcase or not UI.is_file() else UI
         page = page_file.read_text(encoding="utf-8")
         # Change only this read-only response's legacy local-operation labels.
@@ -209,7 +210,7 @@ def serve(open_browser: bool = False, *, radar_only: bool = True) -> None:
     print("RADAR_CANONICAL_EVENT_CONTRACT=CANONICAL_EVENT_V0", flush=True)
     server = bind_server(radar_only=True)
     if any(os.environ.get(name, '').strip() == '1' for name in
-           ('RADAR_LIVE_EIA', 'RADAR_LIVE_ECB', 'RADAR_LIVE_NEWS', 'RADAR_LIVE_GUARDIAN')):
+           ('RADAR_LIVE_EIA', 'RADAR_LIVE_ECB', 'RADAR_LIVE_NEWS', 'RADAR_LIVE_UN_NEWS', 'RADAR_LIVE_GUARDIAN')):
         from tools.stage1b_historical_campaign.live_source_ingestion import DiscoveryIngestion
         try:
             server.live_ingestion = DiscoveryIngestion.from_environment()
