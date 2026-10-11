@@ -50,3 +50,8 @@
 !tools/stage1b_historical_campaign/radar_news_intelligence.py
 
 !tools/stage1b_historical_campaign/radar_impact_hypotheses.py
+
+!tools/stage1b_historical_campaign/radar_market_reaction.py
+!demo/radar_public/market_reaction/
+!demo/radar_public/market_reaction/ecb_2025_06_05.json
+!demo/radar_public/market_reaction/ecb_eurusd_2025_06.csv

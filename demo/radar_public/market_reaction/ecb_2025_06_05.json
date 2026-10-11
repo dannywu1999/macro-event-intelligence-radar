@@ -1,0 +1,32 @@
+{
+  "document_title": "Monetary policy decisions",
+  "event_date": "2025-06-05",
+  "event_document_sha256": "2c8a988aac7af78d2f20da70acc14e76c980cc04f08211f53348149ed55644c5",
+  "event_effective_date": "2025-06-11",
+  "event_effective_time": null,
+  "event_source": "https://www.ecb.europa.eu/press/pr/date/2025/html/ecb.mp250605~3b5f67d007.en.html",
+  "event_timestamp_precision": "DATE_ONLY",
+  "event_timestamp_utc": null,
+  "fact_proposition": "The ECB reduced its three key interest rates by 25 basis points, effective from 11 June 2025.",
+  "license": {
+    "conditions": [
+      "Accurate reproduction and ECB attribution",
+      "Derived calculations explicitly identified",
+      "Free original data linked; no framing"
+    ],
+    "document_sha256": "de1cf4279e8e558e666de7077a6bb47eaf1e497b70fa4467601d0cc67ddf1b71",
+    "reviewed_at": "2026-10-11T07:03:20.456716Z",
+    "scope": "ECB published statistical information; not authored working papers",
+    "source": "European Central Bank",
+    "status": "PUBLIC_REDISTRIBUTABLE_WITH_ATTRIBUTION",
+    "url": "https://www.ecb.europa.eu/services/using-our-site/disclaimer/html/index.en.html"
+  },
+  "market_data_retrieved_at": "2026-10-11T07:03:18.845950Z",
+  "market_data_sha256": "0946e62fadfc827e82c0af8f76fe1c655f18fa0d6f3fe713236bc676af5973fa",
+  "market_data_source": "https://data-api.ecb.europa.eu/service/data/EXR/D.USD.EUR.SP00.A?startPeriod=2025-06-02&endPeriod=2025-06-10&format=csvdata",
+  "methodology_url": "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html",
+  "schema": "ECB_DAILY_REACTION_CASE_V0",
+  "source_published_at": null,
+  "synthetic": false,
+  "system_observed_at": "2026-10-11T07:03:17.805156Z"
+}

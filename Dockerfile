@@ -44,3 +44,7 @@ COPY tools/stage1b_historical_campaign/radar_news_freshness.py tools/stage1b_his
 COPY tools/stage1b_historical_campaign/radar_news_intelligence.py tools/stage1b_historical_campaign/radar_news_intelligence.py
 
 COPY tools/stage1b_historical_campaign/radar_impact_hypotheses.py tools/stage1b_historical_campaign/radar_impact_hypotheses.py
+
+COPY tools/stage1b_historical_campaign/radar_market_reaction.py tools/stage1b_historical_campaign/radar_market_reaction.py
+COPY demo/radar_public/market_reaction/ecb_2025_06_05.json demo/radar_public/market_reaction/ecb_2025_06_05.json
+COPY demo/radar_public/market_reaction/ecb_eurusd_2025_06.csv demo/radar_public/market_reaction/ecb_eurusd_2025_06.csv

@@ -15,6 +15,12 @@ NODE = os.environ.get('RADAR_TEST_NODE') or (str(BUNDLED_NODE) if BUNDLED_NODE.i
 TARGET = "canonical-event-v0-3157198c23e7f1b75248aaeb68f4ab5b750adcfb54749b60143dcb231530abf3"
 
 
+
+def current_event_markup(markup):
+    start = markup.index('<section id="canonical-events"')
+    end = markup.index('<section class="reaction-case"', start)
+    return markup[start:end]
+
 class BilingualVisualTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -89,8 +95,8 @@ class BilingualVisualTests(unittest.TestCase):
             for key, count in (("newsCount", 5), ("eventCount", 5), ("factCount", 1)):
                 self.assertIn(f'data-count="{key}">{count}</div>', html)
             self.assertIn('class="legend"', html)
-            self.assertEqual(html.count('data-event-status="UNVERIFIED_NEWS"'), 5)
-            self.assertEqual(html.count('data-evidence-status="OFFICIAL_CONFIRMED"'), 1)
+            self.assertEqual(current_event_markup(html).count('data-event-status="UNVERIFIED_NEWS"'), 5)
+            self.assertEqual(current_event_markup(html).count('data-evidence-status="OFFICIAL_CONFIRMED"'), 1)
         self.assertIn("not every claim", result["en"])
         self.assertIn("不代表整則新聞或事件都被確認", result["zh"])
 
@@ -100,7 +106,7 @@ class BilingualVisualTests(unittest.TestCase):
         result = self.render(view=view)
         self.assertTrue(result["unchanged"])
         self.assertEqual(re.findall(r'data-event-id="([^"]+)"', result["en"])[0], TARGET)
-        self.assertEqual(result["en"].count('<details class="official-panel" open>'), 1)
+        self.assertEqual(current_event_markup(result["en"]).count('<details class="official-panel" open>'), 1)
         self.assertEqual(result["en"].count('class="no-evidence"'), 4)
         self.assertIn("Display only", result["en"])
         self.assertIn('<details class="provenance"><summary>Details', result["en"])
@@ -139,7 +145,7 @@ class BilingualVisualTests(unittest.TestCase):
         view = copy.deepcopy(self.view)
         view.update(events=[], items=[], official_evidence=[], distinct_event_count=None, news_item_count=0)
         result = self.render(view=view)
-        self.assertNotIn('data-event-id=', result["en"])
+        self.assertNotIn('data-event-id=', current_event_markup(result["en"]))
         self.assertIn('data-count="eventCount">Unknown', result["en"])
         self.assertIn('No records available.', result["en"])
 
@@ -182,7 +188,7 @@ class BilingualVisualTests(unittest.TestCase):
             view=copy.deepcopy(self.view)
             view['live_ingestion']={'enabled':True,'status':status,'last_success_at':None}
             result=self.render(view=view)
-            self.assertEqual(result['en'].count('data-event-status="UNVERIFIED_NEWS"'),5)
+            self.assertEqual(current_event_markup(result['en']).count('data-event-status="UNVERIFIED_NEWS"'),5)
             self.assertNotIn('class="error"',result['en'])
             self.assertIn('validated snapshot',result['en'])
             self.assertIn('已驗證快照',result['zh'])
@@ -200,10 +206,10 @@ class BilingualVisualTests(unittest.TestCase):
     def test_event_timelines_are_bilingual_and_only_evidenced_one_is_expanded(self):
         result=self.render()
         for markup in (result['en'],result['zh']):
-            self.assertEqual(markup.count('class="event-timeline"'),5)
-            self.assertEqual(markup.count('<details class="event-timeline" open>'),1)
-            self.assertEqual(markup.count('data-timeline-type="NEWS_DISCOVERED"'),5)
-            self.assertEqual(markup.count('data-timeline-type="OFFICIAL_EVIDENCE"'),1)
+            self.assertEqual(current_event_markup(markup).count('class="event-timeline"'),5)
+            self.assertEqual(current_event_markup(markup).count('<details class="event-timeline" open>'),1)
+            self.assertEqual(current_event_markup(markup).count('data-timeline-type="NEWS_DISCOVERED"'),5)
+            self.assertEqual(current_event_markup(markup).count('data-timeline-type="OFFICIAL_EVIDENCE"'),1)
         self.assertIn('Event Timeline',result['en'])
         self.assertIn('事件時間軸',result['zh'])
         self.assertIn('Current status',result['en'])
@@ -258,8 +264,8 @@ class BilingualVisualTests(unittest.TestCase):
             view=copy.deepcopy(self.view)
             view['live_ingestion']={'enabled':True,'status':status,'last_success_at':None}
             result=self.render(view=view)
-            self.assertEqual(result['en'].count('class="event-timeline"'),5)
-            self.assertEqual(result['en'].count('data-timeline-type="OFFICIAL_EVIDENCE"'),1)
+            self.assertEqual(current_event_markup(result['en']).count('class="event-timeline"'),5)
+            self.assertEqual(current_event_markup(result['en']).count('data-timeline-type="OFFICIAL_EVIDENCE"'),1)
 
     def mapped_view(self, count=1, **changes):
         from test_radar_geography import metadata, point
@@ -278,7 +284,7 @@ class BilingualVisualTests(unittest.TestCase):
             self.assertIn('class="context-marker"',markup)
             self.assertIn('class="institution-marker"',markup)
             self.assertIn('data-verified-count>0</strong>',markup)
-            self.assertEqual(markup.count('data-geography-status="UNKNOWN"'),5)
+            self.assertEqual(current_event_markup(markup).count('data-geography-status="UNKNOWN"'),5)
         self.assertIn('World Map',result['en'])
         self.assertIn('全球事件地圖',result['zh'])
         self.assertIn('Schematic continent outlines',result['en'])
@@ -294,9 +300,9 @@ class BilingualVisualTests(unittest.TestCase):
             self.assertIn('href="#event-'+view['events'][0]['event_id']+'"',markup)
             self.assertIn('class="map-location-list"',markup)
             self.assertEqual(markup.count('data-geography-status="KNOWN"'),1)
-            self.assertEqual(markup.count('data-event-status="UNVERIFIED_NEWS"'),5)
-            self.assertEqual(markup.count('data-evidence-status="OFFICIAL_CONFIRMED"'),1)
-            self.assertEqual(markup.count('class="event-timeline"'),5)
+            self.assertEqual(current_event_markup(markup).count('data-event-status="UNVERIFIED_NEWS"'),5)
+            self.assertEqual(current_event_markup(markup).count('data-evidence-status="OFFICIAL_CONFIRMED"'),1)
+            self.assertEqual(current_event_markup(markup).count('class="event-timeline"'),5)
         self.assertIn('Presentation geography',result['en'])
         self.assertIn('展示用地理資訊',result['zh'])
         self.assertTrue(result['unchanged'])
@@ -337,7 +343,7 @@ class BilingualVisualTests(unittest.TestCase):
             self.assertIn('data-discovery-source="EIA Today in Energy" data-acquisition-status="LIVE"',markup)
             self.assertIn('data-discovery-source="ECB Press" data-acquisition-status="UNAVAILABLE"',markup)
             self.assertIn('2026-10-07T00:00:00Z',markup)
-            self.assertEqual(markup.count('data-event-status="UNVERIFIED_NEWS"'),5)
+            self.assertEqual(current_event_markup(markup).count('data-event-status="UNVERIFIED_NEWS"'),5)
         self.assertIn('Live Discovery Sources',result['en'])
         self.assertIn('即時發現來源',result['zh'])
         self.assertIn('Acquisition status is not factual verification',result['en'])
