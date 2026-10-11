@@ -42,3 +42,5 @@ COPY tools/stage1b_historical_campaign/broad_news_ingestion.py tools/stage1b_his
 COPY tools/stage1b_historical_campaign/radar_news_freshness.py tools/stage1b_historical_campaign/radar_news_freshness.py
 
 COPY tools/stage1b_historical_campaign/radar_news_intelligence.py tools/stage1b_historical_campaign/radar_news_intelligence.py
+
+COPY tools/stage1b_historical_campaign/radar_impact_hypotheses.py tools/stage1b_historical_campaign/radar_impact_hypotheses.py
