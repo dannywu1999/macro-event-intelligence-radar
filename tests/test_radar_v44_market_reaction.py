@@ -66,9 +66,9 @@ class ReactionUI(unittest.TestCase):
  def test_api_receipt_and_current_counts_separate(self):
   v=self.ui.view;self.assertEqual(v['market_reaction_research']['status'],'AVAILABLE');self.assertNotIn(v['market_reaction_research']['event']['event_id'],[e['event_id'] for e in v['events']]);self.assertEqual(v['news_item_count'],len(v['items']))
  def test_real_graph_dates_units_and_localized_boundaries(self):
-  x=self.ui.render();self.assertIn('class="reaction-chart"',x['en']);self.assertIn('1.1384',x['en']);self.assertIn('0.237175',x['en']);self.assertIn('EX_POST_MARKET_OBSERVATION',x['zh']);self.assertIn('盤中反應尚未量測',x['zh']);self.assertIn('不宣稱因果效果',x['zh']);self.assertIn('2025/6/5',x['zh']);self.assertIn('data-reaction-index="6"',x['en'])
+  x=self.ui.render();self.assertIn('class="reaction-chart"',x['en']);self.assertIn('1.1384',x['en']);self.assertIn('0.237175',x['en']);self.assertIn('EX_POST_MARKET_OBSERVATION',x['zh']);self.assertIn('盤中反應尚未量測',x['zh']);self.assertIn('不宣稱因果效果',x['zh']);self.assertIn('2025-06-05',x['zh']);self.assertIn('data-reaction-index="6"',x['en'])
  def test_missing_case_no_chart(self):
-  v=copy.deepcopy(self.ui.view);v['market_reaction_research']={'status':'NOT_MEASURED','receipt':None};x=self.ui.render(view=v);self.assertNotIn('class="reaction-chart"',x['en']);self.assertIn('No prices or chart are fabricated',x['en'])
+  v=copy.deepcopy(self.ui.view);v['market_reaction_research']={'status':'NOT_MEASURED','receipt':None};v['market_research_library']={'status':'NOT_MEASURED','cases':[],'total_case_count':3,'observed_price_case_count':0,'not_measured_case_count':3,'official_case_count':0,'pit_replay_case_count':0,'comparable_pairs':[],'comparable_pair_count':0};x=self.ui.render(view=v);self.assertNotIn('class="reaction-chart"',x['en']);self.assertIn('No prices or chart are fabricated',x['en'])
  def test_existing_product_preserved(self):
   x=self.ui.render();self.assertLess(x['en'].index('id="world-map"'),x['en'].index('id="prediction-market-watch"'));self.assertIn('PREVIEW',x['en']);self.assertIn('NO_RECORDED_HISTORY',x['en']);self.assertIn('id="data-source-status"',x['en']);self.assertTrue(x['unchanged'])
 

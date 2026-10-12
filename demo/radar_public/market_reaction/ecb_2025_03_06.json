@@ -1,0 +1,32 @@
+{
+  "document_title": "Monetary policy decisions",
+  "event_date": "2025-03-06",
+  "event_document_sha256": "8782acd512583365d9d6f1e714575e135afc9bccf70ec3fd566e377b28fce3aa",
+  "event_effective_date": "2025-03-12",
+  "event_effective_time": null,
+  "event_source": "https://www.ecb.europa.eu/press/pr/date/2025/html/ecb.mp250306~d4340800b3.en.html",
+  "event_timestamp_precision": "DATE_ONLY",
+  "event_timestamp_utc": null,
+  "fact_proposition": "The ECB lowered its three key interest rates by 25 basis points; the deposit facility, main refinancing operations and marginal lending facility rates were set to 2.50%, 2.65% and 2.90%, effective 12 March 2025.",
+  "license": {
+    "conditions": [
+      "Accurate reproduction and ECB attribution",
+      "Derived calculations explicitly identified",
+      "Free original data linked; no framing"
+    ],
+    "document_sha256": "de1cf4279e8e558e666de7077a6bb47eaf1e497b70fa4467601d0cc67ddf1b71",
+    "reviewed_at": "2026-10-11T07:03:20.456716Z",
+    "scope": "ECB published statistical information; not authored working papers",
+    "source": "European Central Bank",
+    "status": "PUBLIC_REDISTRIBUTABLE_WITH_ATTRIBUTION",
+    "url": "https://www.ecb.europa.eu/services/using-our-site/disclaimer/html/index.en.html"
+  },
+  "market_data_retrieved_at": "2026-10-11T08:55:49.521832Z",
+  "market_data_sha256": "f6ce18bdd62a654419244a6f59350fd5591b142b70406bfeba77314f8da72fb0",
+  "market_data_source": "https://data-api.ecb.europa.eu/service/data/EXR/D.USD.EUR.SP00.A?startPeriod=2025-03-04&endPeriod=2025-03-10&format=csvdata",
+  "methodology_url": "https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html",
+  "schema": "ECB_DAILY_REACTION_CASE_V0",
+  "source_published_at": null,
+  "synthetic": false,
+  "system_observed_at": "2026-10-11T08:55:05.379258Z"
+}

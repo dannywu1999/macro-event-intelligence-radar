@@ -18,7 +18,7 @@ TARGET = "canonical-event-v0-3157198c23e7f1b75248aaeb68f4ab5b750adcfb54749b60143
 
 def current_event_markup(markup):
     start = markup.index('<section id="canonical-events"')
-    end = markup.index('<section class="reaction-case"', start)
+    end = markup.index('<section class="reaction-case', start)
     return markup[start:end]
 
 class BilingualVisualTests(unittest.TestCase):

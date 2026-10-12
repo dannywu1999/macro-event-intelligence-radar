@@ -48,3 +48,7 @@ COPY tools/stage1b_historical_campaign/radar_impact_hypotheses.py tools/stage1b_
 COPY tools/stage1b_historical_campaign/radar_market_reaction.py tools/stage1b_historical_campaign/radar_market_reaction.py
 COPY demo/radar_public/market_reaction/ecb_2025_06_05.json demo/radar_public/market_reaction/ecb_2025_06_05.json
 COPY demo/radar_public/market_reaction/ecb_eurusd_2025_06.csv demo/radar_public/market_reaction/ecb_eurusd_2025_06.csv
+COPY demo/radar_public/market_reaction/ecb_2025_03_06.json demo/radar_public/market_reaction/ecb_2025_03_06.json
+COPY demo/radar_public/market_reaction/ecb_eurusd_2025_03.csv demo/radar_public/market_reaction/ecb_eurusd_2025_03.csv
+COPY demo/radar_public/market_reaction/ecb_2025_04_17.json demo/radar_public/market_reaction/ecb_2025_04_17.json
+COPY demo/radar_public/market_reaction/ecb_eurusd_2025_04.csv demo/radar_public/market_reaction/ecb_eurusd_2025_04.csv

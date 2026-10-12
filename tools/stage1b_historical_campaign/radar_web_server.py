@@ -83,8 +83,9 @@ def feed_view(ingestion=None, expectation_sensor=None, market_watch=None) -> dic
     view['news_intelligence'] = news_intelligence(view)
     from tools.stage1b_historical_campaign.radar_impact_hypotheses import project as impact_hypotheses
     view['impact_intelligence'] = impact_hypotheses(view)
-    from tools.stage1b_historical_campaign.radar_market_reaction import load_case
+    from tools.stage1b_historical_campaign.radar_market_reaction import load_case, load_research_library
     view['market_reaction_research'] = load_case()
+    view['market_research_library'] = load_research_library()
     return view
 
 
