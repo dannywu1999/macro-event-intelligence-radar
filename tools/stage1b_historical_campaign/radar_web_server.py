@@ -77,15 +77,24 @@ def feed_view(ingestion=None, expectation_sensor=None, market_watch=None) -> dic
     complete = view.get("canonical_event_projection_status") == "AVAILABLE"
     require((type(count) is int and count == len(view["events"])) if complete else count is None,
             "RADAR_CANONICAL_EVENT_COUNT_INVALID")
+    # Opt-in read only. No database creation or recorder activation here.
+    from tools.stage1b_historical_campaign.radar_news_intelligence import attach_recording_status
+    from tools.stage1b_historical_campaign.radar_intelligence_store import configured_db, IntelligenceStore, StoreError
+    db_path = configured_db()
+    try:
+        view = attach_recording_status(view, IntelligenceStore(db_path) if db_path else None)
+    except (StoreError, OSError):
+        view = attach_recording_status(view)
+        view['prospective_recording_read_status'] = 'UNAVAILABLE'
     from tools.stage1b_historical_campaign.radar_news_freshness import project
     view['news_freshness'] = project(view)
-    from tools.stage1b_historical_campaign.radar_news_intelligence import project as news_intelligence
-    view['news_intelligence'] = news_intelligence(view)
-    from tools.stage1b_historical_campaign.radar_impact_hypotheses import project as impact_hypotheses
-    view['impact_intelligence'] = impact_hypotheses(view)
     from tools.stage1b_historical_campaign.radar_market_reaction import load_case, load_research_library
     view['market_reaction_research'] = load_case()
     view['market_research_library'] = load_research_library()
+    from tools.stage1b_historical_campaign.radar_news_intelligence import project as news_intelligence
+    view['news_intelligence'] = news_intelligence(view, research_library=view['market_research_library'])
+    from tools.stage1b_historical_campaign.radar_impact_hypotheses import project as impact_hypotheses
+    view['impact_intelligence'] = impact_hypotheses(view)
     return view
 
 
