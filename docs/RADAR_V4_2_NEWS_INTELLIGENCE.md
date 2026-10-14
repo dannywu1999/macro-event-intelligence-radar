@@ -76,3 +76,46 @@ News cards open the existing bilingual research workspace with independently lab
 `python -m tools.stage1b_historical_campaign.radar_news_intelligence --capture-snapshot <public snapshot> --retrieval-receipt <receipt> --pilot-root <new external directory> --article <exact reference>` is a bounded explicit one-shot metadata pilot. It creates a NEW isolated IntelligenceStore, content-addressed receipts and non-authoritative previews. No workers, provider requests, write API, protected ledger or authoritative MacroView freeze are created. The existing replay API reads the captured store only when configured explicitly. Capture in 2026 never establishes 2025 knowledge. Receipt hashes bind title/source/time metadata, not full article text.
 
 ECB meeting notices, speeches, forecasts, operational guidelines and non-rate decisions do not receive rate-decision analogues. Current observations remain unavailable; genuine historical ECB daily rates retain DATE_ONLY / EX_POST / NOT_ESTABLISHED and are not executable prices. Historical cases never become current News.
+
+
+## V4.7 explicit prospective pilot
+
+The new `radar_news_prospective` module shares the existing IntelligenceStore,
+read-only detection projection and as-of research API. It is the single justified
+runtime addition: the public package inventory becomes 55 bound files, plus its
+manifest. No ledger, receipts, pilot inputs or engineering screenshots are exported.
+
+Run only with `--opt-in-isolated-public-capture --pilot-root <durable-local-root>`.
+`--initialize` requires a NEW root. The marker fixes provider, interval and request
+budget across restarts. Default cadence is 1800 seconds; faster cadence is rejected.
+One primary runner holds a local OS lock. A sequential transient HTTP child enforces
+a 22-second total network deadline; it has no ledger access or collector authority.
+Known tracking keys can be removed from URL identities; semantic parameters remain.
+Title corrections preserve article identity and append material content versions.
+
+NEWS_ARTICLE stores content versions; SOURCE_STATE stores each attempt, source
+receipt and repeat sighting. Receipts retain title/link/time/author metadata, the
+raw response hash and byte count, never the full RSS/article body. Checkpoint and
+CURRENT_NEWS are derived caches; restart reconstructs them from the append-only
+ledger. Interrupted reservations stay UNKNOWN and still consume the safe budget.
+Failed sources do not refresh last_seen or erase last-good news.
+
+First observation is the earliest successfully retrieved metadata whose evidence
+was durably appended to this LOCAL pilot. It is not source publication or browser
+display time. Exact second-bearing source timestamps can measure the source claim
+to first-observation delay; this does NOT prove real-event detection speed.
+DATE_ONLY, MINUTE, missing/future source clocks produce UNKNOWN latency.
+Importance, freshness, provenance and current research readiness are distinct.
+Priority is transparent research triage, never a trading signal or alert service.
+
+The read-only `/api/app/research?event_id=...&as_of=...` uses only ledger rows at
+or before as_of. Later official propositions cannot appear earlier. Any recomputed
+MacroView is explicitly current interpretation rules on as-of evidence, not a
+recorded forecast, authoritative freeze, or retrospective PIT reconstruction.
+Historical ECB analogues remain separate EX_POST research and are excluded from
+the as-of knowledge payload. Missing current market prices remain unavailable.
+
+Production is NOT activated by this module. A local filesystem restart proof does
+not prove Render redeployment durability or always-on availability. Default public
+reads create no store or worker; absent storage displays FIRST_SEEN_NOT_PROVEN.
+UN News, Guardian, GDELT and BBC are not enabled by the pilot.

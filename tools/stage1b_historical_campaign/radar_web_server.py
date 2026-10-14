@@ -82,9 +82,14 @@ def feed_view(ingestion=None, expectation_sensor=None, market_watch=None) -> dic
     from tools.stage1b_historical_campaign.radar_intelligence_store import configured_db, IntelligenceStore, StoreError
     db_path = configured_db()
     try:
-        view = attach_recording_status(view, IntelligenceStore(db_path) if db_path else None)
+        store = IntelligenceStore(db_path) if db_path else None
+        view = attach_recording_status(view, store)
+        from tools.stage1b_historical_campaign.radar_news_prospective import attach_detection
+        view = attach_detection(view, store)
     except (StoreError, OSError):
         view = attach_recording_status(view)
+        from tools.stage1b_historical_campaign.radar_news_prospective import attach_detection
+        view = attach_detection(view)
         view['prospective_recording_read_status'] = 'UNAVAILABLE'
     from tools.stage1b_historical_campaign.radar_news_freshness import project
     view['news_freshness'] = project(view)
@@ -162,7 +167,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Cache-Control", "no-cache")
             self.end_headers()
             self.wfile.write(data)
-        elif path == "/api/app/replay":
+        elif path in {"/api/app/replay", "/api/app/research"}:
             try:
                 raw_query = urlsplit(self.path).query
                 if len(raw_query) > 4096:
@@ -186,7 +191,13 @@ class Handler(BaseHTTPRequestHandler):
                 db_path = configured_db()
                 if db_path is None:
                     raise StoreError("STORE_NOT_CONFIGURED")
-                self.reply(200, replay_event_as_of(IntelligenceStore(db_path), query["event_id"][0], query["as_of"][0]))
+                store = IntelligenceStore(db_path)
+                if path == "/api/app/research":
+                    from tools.stage1b_historical_campaign.radar_news_prospective import research_as_of
+                    result = research_as_of(store, query["event_id"][0], query["as_of"][0])
+                else:
+                    result = replay_event_as_of(store, query["event_id"][0], query["as_of"][0])
+                self.reply(200, result)
             except (StoreError, OSError, ValueError):
                 self.reply(503, {"error": "INTELLIGENCE_REPLAY_UNAVAILABLE", "read_only": True})
         elif path == "/api/app/radar":

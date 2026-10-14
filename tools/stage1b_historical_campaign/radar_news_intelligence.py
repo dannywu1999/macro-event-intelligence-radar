@@ -176,6 +176,10 @@ def research_clocks(article, source_state):
     # Only an explicit first-observation contract can establish detection latency.
     verified_first = article.get('observation_time_basis') == 'FIRST_RECORDED_SOURCE_OBSERVATION'
     latency = (observation_dt - publication_dt).total_seconds() if verified_first and publication_dt and observation_dt and observation_dt >= publication_dt else None
+    detection = article.get('detection_evidence')
+    if detection is not None:
+        latency = detection.get('source_to_observation_delay_seconds')
+        verified_first = bool(detection.get('first_observed_proven'))
     capture = article.get('prospective_evidence') or {}
     return dict(source_published_at=published, upstream_observed_at=observed,
                 first_observed_at=observed if verified_first else None,
