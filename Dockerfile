@@ -54,3 +54,5 @@ COPY demo/radar_public/market_reaction/ecb_2025_04_17.json demo/radar_public/mar
 COPY demo/radar_public/market_reaction/ecb_eurusd_2025_04.csv demo/radar_public/market_reaction/ecb_eurusd_2025_04.csv
 
 COPY tools/stage1b_historical_campaign/radar_news_prospective.py tools/stage1b_historical_campaign/radar_news_prospective.py
+
+COPY tools/stage1b_historical_campaign/radar_news_capture_service.py tools/stage1b_historical_campaign/radar_news_capture_service.py

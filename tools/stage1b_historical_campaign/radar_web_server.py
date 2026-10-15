@@ -32,8 +32,20 @@ def require(value: bool, code: str) -> None:
         raise GovernanceError(code)
 
 
-def feed_view(ingestion=None, expectation_sensor=None, market_watch=None) -> dict[str, Any]:
-    if ingestion is not None:
+def feed_view(ingestion=None, expectation_sensor=None, market_watch=None, capture_service=None) -> dict[str, Any]:
+    capture_store = None
+    capture_view = None
+    if capture_service is not None and capture_service.enabled:
+        try:
+            capture_store = capture_service.reader()
+            if capture_store is not None:
+                from tools.stage1b_historical_campaign.radar_news_capture_service import CaptureIngestion
+                capture_view = CaptureIngestion(capture_store).read_view(event_radar, event_radar.EvidencePaths.from_environment())
+        except (ValueError, OSError):
+            capture_store = None
+    if capture_view is not None:
+        view = capture_view
+    elif ingestion is not None:
         view = ingestion.read_view(event_radar, event_radar.EvidencePaths.from_environment())
     else:
         view = event_radar.build_radar_view()
@@ -80,9 +92,10 @@ def feed_view(ingestion=None, expectation_sensor=None, market_watch=None) -> dic
     # Opt-in read only. No database creation or recorder activation here.
     from tools.stage1b_historical_campaign.radar_news_intelligence import attach_recording_status
     from tools.stage1b_historical_campaign.radar_intelligence_store import configured_db, IntelligenceStore, StoreError
-    db_path = configured_db()
+    db_path = configured_db() if capture_service is None or not capture_service.enabled else None
+    view['news_capture_status'] = capture_service.status() if capture_service else {'enabled': False, 'status': 'OFF', 'reason': None}
     try:
-        store = IntelligenceStore(db_path) if db_path else None
+        store = capture_store or (IntelligenceStore(db_path) if db_path else None)
         view = attach_recording_status(view, store)
         from tools.stage1b_historical_campaign.radar_news_prospective import attach_detection
         view = attach_detection(view, store)
@@ -188,10 +201,12 @@ class Handler(BaseHTTPRequestHandler):
                 self.reply(400, {"error": "INVALID_REPLAY_AS_OF", "read_only": True})
                 return
             try:
-                db_path = configured_db()
+                capture = getattr(self.server, 'capture_service', None)
+                db_path = configured_db() if not capture or not capture.enabled else capture.config.root/'evidence.sqlite3' if capture.config else None
                 if db_path is None:
                     raise StoreError("STORE_NOT_CONFIGURED")
-                store = IntelligenceStore(db_path)
+                capture = getattr(self.server, 'capture_service', None)
+                store = capture.reader() if capture and capture.enabled else IntelligenceStore(db_path)
                 if path == "/api/app/research":
                     from tools.stage1b_historical_campaign.radar_news_prospective import research_as_of
                     result = research_as_of(store, query["event_id"][0], query["as_of"][0])
@@ -202,7 +217,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.reply(503, {"error": "INTELLIGENCE_REPLAY_UNAVAILABLE", "read_only": True})
         elif path == "/api/app/radar":
             try:
-                self.reply(200, feed_view(getattr(self.server, "live_ingestion", None), getattr(self.server, "expectation_sensor", None), vars(self.server).get('market_watch')))
+                self.reply(200, feed_view(getattr(self.server, "live_ingestion", None), getattr(self.server, "expectation_sensor", None), vars(self.server).get('market_watch'), getattr(self.server, 'capture_service', None)))
             except GovernanceError as exc:
                 self.reply(503, {"error": str(exc), "read_only": True})
         elif path == "/" or (path.startswith("/") and not path.startswith("/api/")):
@@ -225,6 +240,7 @@ def bind_server(*, radar_only: bool = True) -> ThreadingHTTPServer:
     server.live_ingestion = None
     server.expectation_sensor = None
     server.market_watch = None
+    server.capture_service = None
     return server
 
 
@@ -236,7 +252,9 @@ def serve(open_browser: bool = False, *, radar_only: bool = True) -> None:
     print(f"RADAR_ADAPTER_SHA256={source_sha}", flush=True)
     print("RADAR_CANONICAL_EVENT_CONTRACT=CANONICAL_EVENT_V0", flush=True)
     server = bind_server(radar_only=True)
-    if any(os.environ.get(name, '').strip() == '1' for name in
+    from tools.stage1b_historical_campaign.radar_news_capture_service import Lifecycle
+    server.capture_service = Lifecycle(enabled=os.environ.get('RADAR_NEWS_CAPTURE','').strip()=='1', config_path=os.environ.get('RADAR_NEWS_CAPTURE_CONFIG'))
+    if not server.capture_service.enabled and any(os.environ.get(name, '').strip() == '1' for name in
            ('RADAR_LIVE_EIA', 'RADAR_LIVE_ECB', 'RADAR_LIVE_NEWS', 'RADAR_LIVE_UN_NEWS', 'RADAR_LIVE_GUARDIAN')):
         from tools.stage1b_historical_campaign.live_source_ingestion import DiscoveryIngestion
         try:
@@ -258,7 +276,7 @@ def serve(open_browser: bool = False, *, radar_only: bool = True) -> None:
                 server.live_ingestion.close()
             raise
     server.intelligence_recorder = None
-    if os.environ.get("RADAR_PERSIST_INTELLIGENCE", "").strip() == "1":
+    if os.environ.get("RADAR_PERSIST_INTELLIGENCE", "").strip() == "1" and not server.capture_service.enabled:
         from tools.stage1b_historical_campaign.radar_intelligence_store import IntelligenceRecorder, configured_db, StoreError
         try:
             server.intelligence_recorder = IntelligenceRecorder(configured_db(),
@@ -284,6 +302,7 @@ def serve(open_browser: bool = False, *, radar_only: bool = True) -> None:
             raise KeyboardInterrupt
         signal.signal(signal.SIGTERM, terminate)
     try:
+        server.capture_service.start()
         if getattr(server, "live_ingestion", None) is not None:
             server.live_ingestion.start()
         if getattr(server, "expectation_sensor", None) is not None:
@@ -295,6 +314,7 @@ def serve(open_browser: bool = False, *, radar_only: bool = True) -> None:
         pass
     finally:
         server.server_close()
+        server.capture_service.close()
         if getattr(server, "intelligence_recorder", None) is not None:
             server.intelligence_recorder.close()
         if getattr(server, "expectation_sensor", None) is not None:

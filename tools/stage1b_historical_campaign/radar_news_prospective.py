@@ -152,6 +152,7 @@ def owner_lock(root):
   handle.close() # OS releases ownership even after termination.
 
 def ledger_rows(store,as_of=None):
+ if hasattr(store,'news_capture_rows'):return store.news_capture_rows(as_of)
  limit=time_value(as_of or now())[1]
  with store.connection() as db:
   store._schema(db)
@@ -188,13 +189,13 @@ class ProspectiveRunner:
  def __init__(self,root,*,providers=('ECB Press','Global Voices'),interval=1800,max_requests=56,initialize=False,clock=now,fetcher=bounded_fetch):
   requested=Path(root).expanduser()
   if requested.is_symlink() or any(p.is_symlink() for p in requested.parents):raise StoreError('SYMLINK_STORAGE_REJECTED')
-  self.root=requested.resolve();self.providers=tuple(providers)
+  self.root=requested.resolve();self.providers=tuple(providers);self.scope=getattr(self,'scope',SCOPE)
   if (not self.providers or len(set(self.providers))!=len(self.providers) or any(p not in PROVIDERS for p in self.providers)
       or type(interval)!=int or interval<MIN_INTERVAL or type(max_requests)!=int or not 1<=max_requests<=60):raise StoreError('INVALID_PILOT_CONFIG')
   if self.root.is_relative_to(SOURCE_ROOT) or self.root.is_relative_to(Path(tempfile.gettempdir()).resolve()):raise StoreError('NON_DURABLE_OR_SOURCE_ROOT_REJECTED')
   if self.root.is_symlink() or any(p.is_symlink() for p in self.root.parents):raise StoreError('SYMLINK_STORAGE_REJECTED')
   self.interval,self.max_requests,self.clock,self.fetcher=interval,max_requests,clock,fetcher
-  self.stop=threading.Event();self.config=dict(contract=CONTRACT,scope=SCOPE,providers=list(providers),interval=interval,max_requests=max_requests,storage_claim='LOCAL_RESTART_ONLY;NOT_CLOUD_DURABILITY')
+  self.stop=threading.Event();self.config=dict(contract=CONTRACT,scope=self.scope,providers=list(providers),interval=interval,max_requests=max_requests,storage_claim='LOCAL_RESTART_ONLY;NOT_CLOUD_DURABILITY')
   marker=self.root/'V47_PILOT.json'
   if initialize:
    if self.root.exists():raise StoreError('INITIALIZE_REQUIRES_NEW_ROOT')
@@ -206,17 +207,17 @@ class ProspectiveRunner:
   self.result=[]
 
  def recover(self):
-  state=state_from_rows(ledger_rows(self.store))
+  state=state_from_rows(self.state_rows())
   # Any durable attempt without a terminal receipt is retained as uncertain.
   for r in state['attempts'].values():
    p=r['payload']
    if p.get('outcome')=='RESERVED':
     interrupted={**p,'outcome':'INTERRUPTED_UNKNOWN'}
-    self.store.append([record('SOURCE_STATE',r['entity_id'],interrupted)],observed_at=self.clock())
+    self.store.append([self.record('SOURCE_STATE',r['entity_id'],interrupted)],observed_at=self.clock())
   self.publish_checkpoint()
 
  def publish_checkpoint(self):
-  rows=ledger_rows(self.store);state=state_from_rows(rows)
+  rows=self.state_rows();state=state_from_rows(rows)
   directory=self.root/'receipts';directory.mkdir(exist_ok=True)
   for receipt_id,row in state['receipts'].items():
    data=(canonical(row['payload'])+'\n').encode('utf8');path=directory/(receipt_id+'.json')
@@ -230,29 +231,28 @@ class ProspectiveRunner:
    news.append(dict(article_reference=ref,headline_or_text=a['title'],source_name=a['news_source']['name'],source_url=a['news_source']['url'],
     source_published_at=a['reported_at'],event_time=a['reported_at'],observed_time=a['observed_at']))
   atomic_json(self.root/'CURRENT_NEWS.json',news)
-  atomic_json(self.root/'checkpoint.json',dict(contract=CONTRACT,scope=SCOPE,checkpointed_at=self.clock(),
+  atomic_json(self.root/'checkpoint.json',dict(contract=CONTRACT,scope=self.scope,checkpointed_at=self.clock(),
    request_count=len(state['attempts']),articles=len(state['articles']),receipt_count=len(state['receipts']),
    source_states={p:r['payload'] for p,r in state['providers'].items()},last_seen={ref:r['payload']['last_seen_at'] for ref,r in state['seen'].items()},
    ledger_observation_count=len(rows),authoritative_freezes=0,read_model_basis='DERIVED_FROM_APPEND_ONLY_LEDGER'))
 
  def provider_once(self,provider):
-  state=state_from_rows(ledger_rows(self.store));checked=self.clock()
+  state=state_from_rows(self.state_rows());checked=self.clock()
   previous=state['providers'].get(provider,{}).get('payload',{})
   attempts=[r for r in state['attempts'].values() if r['payload']['provider']==provider and r['payload'].get('outcome')!='CLIENT_LAUNCH_FAILED']
   latest=max((timestamp(r['payload']['provider_checked_at']) for r in attempts),default=None)
   current=timestamp(checked)
   if latest and (current-latest).total_seconds()<self.interval:return dict(provider=provider,status='NOT_DUE',requests=0)
-  if len(state['attempts'])>=self.max_requests:return dict(provider=provider,status='REQUEST_BUDGET_EXHAUSTED',requests=0)
-  attempt_id='attempt-v47-'+uuid.uuid4().hex
-  attempt=dict(record_type='ATTEMPT',attempt_id=attempt_id,provider=provider,provider_checked_at=checked,outcome='RESERVED',scope=SCOPE)
-  self.store.append([record('SOURCE_STATE','v47:attempt:'+attempt_id,attempt)],observed_at=checked)
+  reservation=self.reserve_attempt(provider,checked,state)
+  if reservation is None:return dict(provider=provider,status='REQUEST_BUDGET_EXHAUSTED',requests=0)
+  attempt_id,attempt=reservation
   self.publish_checkpoint() # Reservation survives process termination.
   try:
    raw=self.fetcher(provider);retrieved=self.clock()
    articles,diagnostics=parse_source(provider,raw,retrieved)
    recorded=self.clock()
    if not timestamp(checked)<=timestamp(retrieved)<=timestamp(recorded):raise StoreError('SYSTEM_CLOCK_ORDER_INVALID')
-   receipt=dict(record_type='RECEIPT',contract=CONTRACT,scope=SCOPE,attempt_id=attempt_id,provider=provider,
+   receipt=dict(record_type='RECEIPT',contract=CONTRACT,scope=self.scope,attempt_id=attempt_id,provider=provider,
     source_url=PROVIDERS[provider]['endpoint'],provider_checked_at=checked,retrieved_at=retrieved,recorded_at=recorded,
     http_status=200,response_sha256=hashlib.sha256(raw).hexdigest(),response_bytes=len(raw),rights=PROVIDERS[provider],
     retained_scope='TITLE_LINK_TIME_ATTRIBUTION_ONLY',selected=[{k:a[k] for k in ['title','news_source','source_published_at','source_timestamp_precision','article_identity','content_version_identity','url_identity_evidence']} for a in articles],diagnostics=diagnostics)
@@ -264,7 +264,7 @@ class ProspectiveRunner:
     same=prior and prior['payload']['content_version_identity']==a['content_version_identity']
     if prior:
      a['observed_at']=prior['payload']['observed_at'];a['discovered_at']=a['observed_at']
-    a['detection_evidence']=dict(contract=CONTRACT,scope=SCOPE,article_identity=a['article_identity'],
+    a['detection_evidence']=dict(contract=CONTRACT,scope=self.scope,article_identity=a['article_identity'],
      content_version_identity=a['content_version_identity'],source_receipt_identity=receipt['receipt_id'],
      actual_observation_identity=attempt_id,source_published_at=a['source_published_at'],source_timestamp_precision=a['source_timestamp_precision'],
      provider_checked_at=checked,retrieved_at=retrieved,first_observed_at=a['observed_at'],first_observed_proven=True,
@@ -272,23 +272,23 @@ class ProspectiveRunner:
     if same:duplicates+=1
     elif prior:updated+=1;fresh_news[ref]=a
     else:new+=1;fresh_news[ref]=a
-    seen=dict(record_type='SEEN',scope=SCOPE,article_reference=ref,article_identity=a['article_identity'],
+    seen=dict(record_type='SEEN',scope=self.scope,article_reference=ref,article_identity=a['article_identity'],
      source_receipt_identity=receipt['receipt_id'],actual_observation_identity=attempt_id,last_seen_at=retrieved,provider_checked_at=checked,retrieved_at=retrieved,recorded_at=recorded)
-    records.append(record('SOURCE_STATE','v47:seen:'+a['article_identity'],seen))
+    records.append(self.record('SOURCE_STATE','v47:seen:'+a['article_identity'],seen))
    if len(fresh_news)>2000:raise StoreError('PILOT_RETENTION_BOUND_EXCEEDED')
    event_view=build_canonical_events(list(fresh_news.values()))
    membership={ref:e['event_id'] for e in event_view['events'] for ref in e['article_references']}
    for a in articles:
     ref=a['article_reference'];prior=state['articles'].get(ref)
     if not prior or prior['payload']['content_version_identity']!=a['content_version_identity']:
-     records.append(record('NEWS_ARTICLE',ref,a,membership.get(ref),a['reported_at']))
+     records.append(self.record('NEWS_ARTICLE',ref,a,membership.get(ref),a['reported_at']))
    for event in event_view['events']:
-    records.append(record('CANONICAL_EVENT_STATE',event['event_id'],event,event['event_id']))
-   source=dict(record_type='PROVIDER',provider=provider,scope=SCOPE,status='LIVE',last_attempt_at=checked,last_success_at=retrieved,
+    records.append(self.record('CANONICAL_EVENT_STATE',event['event_id'],event,event['event_id']))
+   source=dict(record_type='PROVIDER',provider=provider,scope=self.scope,status='LIVE',last_attempt_at=checked,last_success_at=retrieved,
     refresh_interval_seconds=self.interval,article_count=sum(a['provider']==provider for a in fresh_news.values()),new_article_count=new,
     updated_article_count=updated,duplicate_article_count=duplicates,reason=None,last_successful_cycle=diagnostics,runner_mode='BOUNDED_EXPLICIT_PILOT;NOT_ALWAYS_ON')
    terminal={**attempt,'outcome':'SUCCESS','external_request_started':True}
-   records.extend([record('SOURCE_STATE','v47:receipt:'+receipt['receipt_id'],receipt),record('SOURCE_STATE','v47:provider:'+provider,source),record('SOURCE_STATE','v47:attempt:'+attempt_id,terminal)])
+   records.extend([self.record('SOURCE_STATE','v47:receipt:'+receipt['receipt_id'],receipt),self.record('SOURCE_STATE','v47:provider:'+provider,source),self.record('SOURCE_STATE','v47:attempt:'+attempt_id,terminal)])
    self.store.append(records,observed_at=recorded)
    self.publish_checkpoint()
    return dict(provider=provider,status='SUCCESS',requests=1,new_articles=new,updated=updated,duplicates=duplicates,receipt_id=receipt['receipt_id'])
@@ -298,12 +298,12 @@ class ProspectiveRunner:
     raise
    from .eia_live_ingestion import failure_reason
    code=str(error) if isinstance(error,StoreError) and re.fullmatch(r'[A-Z_0-9]{1,80}',str(error)) else failure_reason(error)
-   recorded=self.clock();source={**previous,'record_type':'PROVIDER','provider':provider,'scope':SCOPE,
+   recorded=self.clock();source={**previous,'record_type':'PROVIDER','provider':provider,'scope':self.scope,
     'status':'LAST_VALID_FALLBACK' if any(a['payload']['provider']==provider for a in state['articles'].values()) else 'UNAVAILABLE',
     'last_attempt_at':checked,'last_success_at':previous.get('last_success_at'),'refresh_interval_seconds':self.interval,
     'new_article_count':0,'reason':code,'runner_mode':'BOUNDED_EXPLICIT_PILOT;NOT_ALWAYS_ON'}
    started=getattr(error,'request_started',True)
-   self.store.append([record('SOURCE_STATE','v47:provider:'+provider,source),record('SOURCE_STATE','v47:attempt:'+attempt_id,{**attempt,'outcome':'FAILED' if started else 'CLIENT_LAUNCH_FAILED','external_request_started':started,'error':code})],observed_at=recorded)
+   self.store.append([self.record('SOURCE_STATE','v47:provider:'+provider,source),self.record('SOURCE_STATE','v47:attempt:'+attempt_id,{**attempt,'outcome':'FAILED' if started else 'CLIENT_LAUNCH_FAILED','external_request_started':started,'error':code})],observed_at=recorded)
    self.publish_checkpoint()
    return dict(provider=provider,status='FAILED',requests=1,error=code)
 
@@ -321,6 +321,16 @@ class ProspectiveRunner:
     self.stop.wait(self.interval)
    self.publish_checkpoint()
   return self.result
+
+ def state_rows(self):return ledger_rows(self.store)
+ def record(self,*args,**kwargs):
+  row=record(*args,**kwargs);row['provenance']['scope']=self.scope;return row
+ def reserve_attempt(self,provider,checked,state):
+  if len(state['attempts'])>=self.max_requests:return None
+  attempt_id='attempt-v47-'+uuid.uuid4().hex
+  attempt=dict(record_type='ATTEMPT',attempt_id=attempt_id,provider=provider,provider_checked_at=checked,outcome='RESERVED',scope=self.scope)
+  self.store.append([self.record('SOURCE_STATE','v47:attempt:'+attempt_id,attempt)],observed_at=checked)
+  return attempt_id,attempt
 
 def triage(article,event_id=None,as_of=None,proof=None):
  current=timestamp(as_of or now());published=timestamp(article.get('reported_at'))
@@ -347,7 +357,7 @@ def attach_detection(view,store=None,*,as_of=None):
    seen=state['seen'].get(ref,{}).get('payload',{})
    proof.update(last_seen_at=seen.get('last_seen_at',proof['last_seen_at']),last_provider_check_at=seen.get('provider_checked_at',proof['provider_checked_at']),
     latest_retrieved_at=seen.get('retrieved_at',proof['retrieved_at']),knowledge_recorded_at=row['observed_at'])
-   versions=[r for r in rows if r['observation_kind']=='NEWS_ARTICLE' and r['entity_id']==ref]
+   versions=store.capture_news_versions(ref,moment) if hasattr(store,'capture_news_versions') else [r for r in rows if r['observation_kind']=='NEWS_ARTICLE' and r['entity_id']==ref]
    proof['versions']=[dict(recorded_at=r['observed_at'],content_version_identity=r['payload']['content_version_identity'],title=r['payload']['title']) for r in versions]
    same=title_key(a.get('title'))==title_key(row['payload']['title']) and a.get('reported_at')==row['payload'].get('reported_at')
    proof['status']=('NEWLY_OBSERVED' if seen.get('actual_observation_identity')==proof['actual_observation_identity'] and len(versions)==1 else 'PREVIOUSLY_OBSERVED') if same else 'CAPTURED_EARLIER_VERSION'
@@ -359,8 +369,8 @@ def attach_detection(view,store=None,*,as_of=None):
    a['publication_precision']=row['payload']['source_timestamp_precision']
    # Only this ledger join establishes first observation, never the legacy CSV clock.
    a['observation_time_basis']='FIRST_RECORDED_SOURCE_OBSERVATION';a['observed_at']=proof['first_observed_at']
-   a['prospective_evidence']=dict(status='RECORDED_LOCAL_PILOT',recorded_at=row['observed_at'],retrieval_time=proof['retrieved_at'],receipt_id=proof['source_receipt_identity'],
-    content_hash=row['payload']['content_version_identity'].removeprefix('news-content-v47-'),evidence_version=row['payload']['content_version_identity'],scope=SCOPE,replay_available=True)
+   a['prospective_evidence']=dict(status='RECORDED_DURABLE_CAPTURE' if proof.get('scope')=='PRODUCTION_DURABLE_CAPTURE' else 'RECORDED_LOCAL_PILOT',recorded_at=row['observed_at'],retrieval_time=proof['retrieved_at'],receipt_id=proof['source_receipt_identity'],
+    content_hash=row['payload']['content_version_identity'].removeprefix('news-content-v47-'),evidence_version=row['payload']['content_version_identity'],scope=proof.get('scope',SCOPE),replay_available=True)
   else:
    provider=next((name for name in PROVIDERS if (a.get('news_source') or {}).get('name','').startswith(name)),None)
    source=(result.get('discovery_sources') or {}).get(provider,{})
@@ -369,7 +379,7 @@ def attach_detection(view,store=None,*,as_of=None):
     provider_checked_at=source.get('last_attempt_at'),retrieved_at=None,recorded_at=None,last_seen_at=None,versions=[],latency_status='UNKNOWN',source_to_observation_delay_seconds=None,scope='NOT_CONFIGURED')
   proof['research_priority']=triage(a,membership.get(a.get('article_reference')),moment,proof)
   a['detection_evidence']=proof
- result['prospective_detection']=dict(contract=CONTRACT,scope=SCOPE if rows else 'NOT_CONFIGURED',
+ result['prospective_detection']=dict(contract=CONTRACT,scope=rows[0]['provenance'].get('scope',SCOPE) if rows else 'NOT_CONFIGURED',
   source_health=[r['payload'] for r in state['providers'].values()],as_of=moment,
   collection_mode='EXPLICIT_BOUNDED_PILOT;NO_AUTOMATIC_PRODUCTION_RECORDING')
  return result
@@ -380,7 +390,7 @@ def research_as_of(store,event_id,as_of):
  replay=replay_event_as_of(store,event_id,as_of,internal=True)
  projection=replay.pop('_projection',None)
  knowledge=attach_detection(projection,store,as_of=as_of) if projection else None
- return dict(contract=CONTRACT,scope=SCOPE,canonical_event_id=event_id,as_of=replay['as_of'],
+ return dict(contract=CONTRACT,scope=getattr(getattr(store,'capture_config',None),'scope',SCOPE),canonical_event_id=event_id,as_of=replay['as_of'],
   status=replay['replay_status'],news=knowledge.get('items',[]) if knowledge else [],official_propositions=[r['payload'] for r in replay['official_evidence_observations'] if r.get('active_at_as_of')],
   evidence_versions=[dict(recorded_at=r['observed_at'],title=r['payload'].get('title'),active_at_as_of=r['active_at_as_of']) for r in replay['news_observations']],
   macroview_preview=preview_macroview(projection,event_id) if projection else None,macroview_authority='NON_AUTHORITATIVE_CURRENT_RULES_ON_ASOF_EVIDENCE;NOT_RECORDED_FORECAST',
