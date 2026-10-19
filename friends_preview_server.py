@@ -19,7 +19,7 @@ def configuration():
  if os.environ.get('FRIENDS_PREVIEW_MODE')!='1' or os.environ.get('RADAR_DEMO_MODE')!='1' or any(os.environ.get(k)!='0' for k in OFF):raise StartupRejected('CONFIG_REQUIRED_OFF')
  # Legacy optional aliases must not create even an apparent live capability.
  if any(v.strip() not in ('','0') for k,v in os.environ.items() if (k.startswith('RADAR_LIVE_') and k not in OFF) or k.startswith(('GLOBAL_EVENT_RADAR_','CLOUDFLARE_','BROKER_','PAPER_TRADING','LIVE_TRADING'))):raise StartupRejected('CONFIG_UNEXPECTED_RUNTIME')
- user=os.environ.get('FRIENDS_PREVIEW_USERNAME','');password=os.environ.get('FRIENDS_PREVIEW_PASSWORD','')
+ user=os.environ.get('FRIENDS_PREVIEW_USERNAME','');password=os.environ.get('FRIENDS_PREVIEW_PASSWORD','').rstrip('\r\n')
  if not re.fullmatch(r'[A-Za-z0-9_.-]{3,64}',user) or ':' in user:raise StartupRejected('USERNAME_INVALID')
  if not password:raise StartupRejected('PASSWORD_MISSING')
  if not 24<=len(password)<=256:raise StartupRejected('PASSWORD_LENGTH_INVALID')
