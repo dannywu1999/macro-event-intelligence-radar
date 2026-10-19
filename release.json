@@ -1,0 +1,7 @@
+{
+  "gateway_release": "M1-20261020-v1",
+  "gateway_build_at": "2026-10-19T17:54:53.348159+00:00",
+  "canonical_base_url": "https://macro-radar-llm-gateway-20261020.onrender.com",
+  "friends_preview_url": "https://macro-radar-friends-preview.onrender.com",
+  "source_sha256": "05e1f41cab2624381ee0d5535a0fc0459787e2f4ba364bcf36aec1e32bcceed5"
+}

@@ -1,0 +1,52 @@
+{
+  "schema": "MACRO_RADAR_GATEWAY_METADATA_V1",
+  "gateway_release": "M1-20261020-v1",
+  "gateway_build_at": "2026-10-19T17:54:53.348159+00:00",
+  "canonical_base_url": "https://macro-radar-llm-gateway-20261020.onrender.com",
+  "source": {
+    "source_repo": "https://github.com/dannywu1999/macro-event-intelligence-radar",
+    "source_branch": "friends-preview-20261019",
+    "source_git_commit": "acd96ccd3bd04ab7af9d66c301f326a2eca291aa",
+    "source_snapshot_id": "friends-preview-acd96ccd-public-168",
+    "source_snapshot_sha256": "bdb0e8e3d9cde6acc07c492162baf3662bc1ed660e32e4402b7b05fafd896d7e",
+    "source_rights_inventory_sha256": "550b379d0d2ecc32e26b2044cb6b62d95f3560802b796ad3fc8529590c02b804",
+    "source_package_manifest_sha256": "e4119b81103001289d7d14beb88d24e5a366070cb34f818b91c03645dad294e6",
+    "source_snapshot_path": "data/public_168.json",
+    "original_snapshot_latest_observed_at": "2026-10-18T15:58:49.820277Z",
+    "original_snapshot_last_successful_update": null
+  },
+  "compact_source_sha256": "05e1f41cab2624381ee0d5535a0fc0459787e2f4ba364bcf36aec1e32bcceed5",
+  "events_json_sha256": "515958dca97c46f1366bb5b93249a4f67348e9c7ee6355171385f6edb12126ff",
+  "latest_actual_observation_at": "2026-10-18T15:58:49.820277Z",
+  "observation_definition": "Maximum observed_at among these included saved articles; not continuous collection or proof of globally durable first-seen.",
+  "scope": "SAVED_PUBLIC_METADATA_ONLY",
+  "live_feed": false,
+  "trading_signal": false,
+  "article_count": 7,
+  "event_candidate_count": 7,
+  "supported": [
+    "static public metadata reading",
+    "source attribution",
+    "separate published/observed/recorded clocks",
+    "presentation-only Chinese headlines",
+    "published byte checksums"
+  ],
+  "unavailable": [
+    "live news",
+    "continuous capture",
+    "approved durable first-seen/PIT history",
+    "linked official factual verification",
+    "frozen MacroView",
+    "as-of replay",
+    "strategy or execution validation",
+    "broker/Paper/Live"
+  ],
+  "source_rights_url": "https://macro-radar-llm-gateway-20261020.onrender.com/source-rights.json",
+  "manifest_url": "https://macro-radar-llm-gateway-20261020.onrender.com/manifest.json",
+  "review_scopes": {
+    "public_data": "READABLE",
+    "evidence_integrity": "PUBLIC_PROJECTION_ONLY",
+    "product_concept": "LIMITED_SAVED_SNAPSHOT",
+    "interactive_website_ux": "NOT_TESTED_BY_STATIC_GATEWAY"
+  }
+}

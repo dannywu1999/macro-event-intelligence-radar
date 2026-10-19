@@ -1,0 +1,153 @@
+{
+  "scope": "PUBLIC_HEADLINE_METADATA_ONLY",
+  "source_rights_inventory_sha256": "550b379d0d2ecc32e26b2044cb6b62d95f3560802b796ad3fc8529590c02b804",
+  "records": [
+    {
+      "rights_id": "rights-9bc7001de8811625",
+      "source_id": "eia",
+      "source": "EIA Today in Energy",
+      "source_url": "https://www.eia.gov/todayinenergy/detail.php?id=68324",
+      "original_headline": "U.S. small-scale solar generation has quadrupled in the last decade",
+      "author": "",
+      "policy_status": "PUBLIC_ELIGIBLE",
+      "policy_url": "https://www.eia.gov/about/copyrights_reuse.php",
+      "license_url": null,
+      "attribution_requirements": "EIA; original publication date and link. No third-party material, logos or images.",
+      "translation_responsibility": "Macro Trading OS / Codex curated presentation, unofficial; original headline and source retained; translated headlines are adaptations.",
+      "scope": "TITLE_LINK_ATTRIBUTION_TIMESTAMPS_ONLY",
+      "excluded": [
+        "full_article",
+        "description",
+        "images",
+        "logos",
+        "third_party_content"
+      ]
+    },
+    {
+      "rights_id": "rights-f7720e0b5aa393d4",
+      "source_id": "eia",
+      "source": "EIA Today in Energy",
+      "source_url": "https://www.eia.gov/todayinenergy/detail.php?id=68305",
+      "original_headline": "PJM, ERCOT, and SWPP all set peak load records this summer",
+      "author": "",
+      "policy_status": "PUBLIC_ELIGIBLE",
+      "policy_url": "https://www.eia.gov/about/copyrights_reuse.php",
+      "license_url": null,
+      "attribution_requirements": "EIA; original publication date and link. No third-party material, logos or images.",
+      "translation_responsibility": "Macro Trading OS / Codex curated presentation, unofficial; original headline and source retained; translated headlines are adaptations.",
+      "scope": "TITLE_LINK_ATTRIBUTION_TIMESTAMPS_ONLY",
+      "excluded": [
+        "full_article",
+        "description",
+        "images",
+        "logos",
+        "third_party_content"
+      ]
+    },
+    {
+      "rights_id": "rights-5703a792363460cf",
+      "source_id": "360info",
+      "source": "360info · Christopher Wright University of Sydney Business School",
+      "source_url": "https://360info.org/how-the-fossil-fuel-industry-captured-australia-and-maintains-its-political-dominance/",
+      "original_headline": "How the fossil fuel industry ‘captured’ Australia and maintains its political dominance",
+      "author": "Christopher Wright University of Sydney Business School",
+      "policy_status": "PUBLIC_ELIGIBLE",
+      "policy_url": "https://360info.org/how-to-use-our-content/",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution_requirements": "Author, title, 360info, original link, CC BY 4.0 https://creativecommons.org/licenses/by/4.0/ ; metadata formatting only; no images or third-party content.",
+      "translation_responsibility": "Macro Trading OS / Codex curated presentation, unofficial; original headline and source retained; translated headlines are adaptations.",
+      "scope": "TITLE_LINK_ATTRIBUTION_TIMESTAMPS_ONLY",
+      "excluded": [
+        "full_article",
+        "description",
+        "images",
+        "logos",
+        "third_party_content"
+      ]
+    },
+    {
+      "rights_id": "rights-e15f9e3f12f4525f",
+      "source_id": "360info",
+      "source": "360info · Christian Downie Australian National University",
+      "source_url": "https://360info.org/how-fossil-fuel-lobby-is-undermining-democracy/",
+      "original_headline": "How fossil fuel lobby is undermining democracy",
+      "author": "Christian Downie Australian National University",
+      "policy_status": "PUBLIC_ELIGIBLE",
+      "policy_url": "https://360info.org/how-to-use-our-content/",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution_requirements": "Author, title, 360info, original link, CC BY 4.0 https://creativecommons.org/licenses/by/4.0/ ; metadata formatting only; no images or third-party content.",
+      "translation_responsibility": "Macro Trading OS / Codex curated presentation, unofficial; original headline and source retained; translated headlines are adaptations.",
+      "scope": "TITLE_LINK_ATTRIBUTION_TIMESTAMPS_ONLY",
+      "excluded": [
+        "full_article",
+        "description",
+        "images",
+        "logos",
+        "third_party_content"
+      ]
+    },
+    {
+      "rights_id": "rights-7291c7d4470e79e2",
+      "source_id": "eia",
+      "source": "EIA Today in Energy",
+      "source_url": "https://www.eia.gov/todayinenergy/detail.php?id=68304",
+      "original_headline": "Monthly wind generation in ISO-NE is about 68% higher than last year",
+      "author": "",
+      "policy_status": "PUBLIC_ELIGIBLE",
+      "policy_url": "https://www.eia.gov/about/copyrights_reuse.php",
+      "license_url": null,
+      "attribution_requirements": "EIA; original publication date and link. No third-party material, logos or images.",
+      "translation_responsibility": "Macro Trading OS / Codex curated presentation, unofficial; original headline and source retained; translated headlines are adaptations.",
+      "scope": "TITLE_LINK_ATTRIBUTION_TIMESTAMPS_ONLY",
+      "excluded": [
+        "full_article",
+        "description",
+        "images",
+        "logos",
+        "third_party_content"
+      ]
+    },
+    {
+      "rights_id": "rights-5122a31561b08934",
+      "source_id": "bls_cpi_official",
+      "source": "BLS CPI",
+      "source_url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "original_headline": "CPI for all items increases 0.6% in September; gasoline rises",
+      "author": "",
+      "policy_status": "PUBLIC_ELIGIBLE",
+      "policy_url": "https://www.bls.gov/bls/linksite.htm",
+      "license_url": null,
+      "attribution_requirements": "BLS; original release and date. Exclude photographs, illustrations and seal.",
+      "translation_responsibility": "Macro Trading OS / Codex curated presentation, unofficial; original headline and source retained; translated headlines are adaptations.",
+      "scope": "TITLE_LINK_ATTRIBUTION_TIMESTAMPS_ONLY",
+      "excluded": [
+        "full_article",
+        "description",
+        "images",
+        "logos",
+        "third_party_content"
+      ]
+    },
+    {
+      "rights_id": "rights-a46541ce586d14b9",
+      "source_id": "360info",
+      "source": "360info · Manoj Pant, Shiv Nadar University, Delhi-NCR, and M Rahul, Institute of Economic Growth, Delhi.",
+      "source_url": "https://360info.org/india-should-not-turn-trumps-trade-battle-into-a-political-cause/",
+      "original_headline": "India should not turn Trump’s trade battle into a political cause",
+      "author": "Manoj Pant, Shiv Nadar University, Delhi-NCR, and M Rahul, Institute of Economic Growth, Delhi.",
+      "policy_status": "PUBLIC_ELIGIBLE",
+      "policy_url": "https://360info.org/how-to-use-our-content/",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "attribution_requirements": "Author, title, 360info, original link, CC BY 4.0 https://creativecommons.org/licenses/by/4.0/ ; metadata formatting only; no images or third-party content.",
+      "translation_responsibility": "Macro Trading OS / Codex curated presentation, unofficial; original headline and source retained; translated headlines are adaptations.",
+      "scope": "TITLE_LINK_ATTRIBUTION_TIMESTAMPS_ONLY",
+      "excluded": [
+        "full_article",
+        "description",
+        "images",
+        "logos",
+        "third_party_content"
+      ]
+    }
+  ]
+}

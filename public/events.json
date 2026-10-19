@@ -1,0 +1,219 @@
+{
+  "schema": "MACRO_RADAR_LLM_GATEWAY_V1",
+  "scope": "SAVED_PUBLIC_METADATA_ONLY",
+  "live_feed": false,
+  "trading_signal": false,
+  "window_hours": 168,
+  "latest_observed_data_at": "2026-10-18T15:58:49.820277Z",
+  "last_successful_update": null,
+  "article_count": 7,
+  "event_candidate_count": 7,
+  "articles": [
+    {
+      "headline_zh": "美國小規模太陽能發電量在過去十年增至四倍",
+      "headline_original": "U.S. small-scale solar generation has quadrupled in the last decade",
+      "source": "EIA Today in Energy",
+      "source_url": "https://www.eia.gov/todayinenergy/detail.php?id=68324",
+      "source_reported_at": "2026-10-16T14:00:00Z",
+      "observed_at": "2026-10-18T13:53:49.442089Z",
+      "recorded_at": "2026-10-18T13:59:31.639939Z",
+      "verification_status": "UNVERIFIED_NEWS",
+      "event_family": "ENERGY",
+      "translation_status": "CURATED_CANDIDATE",
+      "rights_id": "rights-9bc7001de8811625",
+      "source_id": "eia",
+      "author": null,
+      "translation_presentation_only": true,
+      "official_evidence_status": "NO_OFFICIAL_EVIDENCE_LINKED"
+    },
+    {
+      "headline_zh": "PJM、ERCOT與SWPP今年夏季皆創尖峰用電負載紀錄",
+      "headline_original": "PJM, ERCOT, and SWPP all set peak load records this summer",
+      "source": "EIA Today in Energy",
+      "source_url": "https://www.eia.gov/todayinenergy/detail.php?id=68305",
+      "source_reported_at": "2026-10-15T14:00:00Z",
+      "observed_at": "2026-10-18T13:53:49.442089Z",
+      "recorded_at": "2026-10-18T13:59:31.639939Z",
+      "verification_status": "UNVERIFIED_NEWS",
+      "event_family": "MACRO_CONTEXT",
+      "translation_status": "CURATED_CANDIDATE",
+      "rights_id": "rights-f7720e0b5aa393d4",
+      "source_id": "eia",
+      "author": null,
+      "translation_presentation_only": true,
+      "official_evidence_status": "NO_OFFICIAL_EVIDENCE_LINKED"
+    },
+    {
+      "headline_zh": "化石燃料產業如何「俘虜」澳洲，並維持其政治主導地位",
+      "headline_original": "How the fossil fuel industry ‘captured’ Australia and maintains its political dominance",
+      "source": "360info · Christopher Wright University of Sydney Business School",
+      "source_url": "https://360info.org/how-the-fossil-fuel-industry-captured-australia-and-maintains-its-political-dominance/",
+      "source_reported_at": "2026-10-15T11:51:22Z",
+      "observed_at": "2026-10-18T15:58:49.820277Z",
+      "recorded_at": "2026-10-18T16:04:10.576937Z",
+      "verification_status": "UNVERIFIED_NEWS",
+      "event_family": "ENERGY",
+      "translation_status": "CURATED_CANDIDATE",
+      "rights_id": "rights-5703a792363460cf",
+      "source_id": "360info",
+      "author": "Christopher Wright University of Sydney Business School",
+      "translation_presentation_only": true,
+      "official_evidence_status": "NO_OFFICIAL_EVIDENCE_LINKED"
+    },
+    {
+      "headline_zh": "化石燃料遊說勢力如何削弱民主",
+      "headline_original": "How fossil fuel lobby is undermining democracy",
+      "source": "360info · Christian Downie Australian National University",
+      "source_url": "https://360info.org/how-fossil-fuel-lobby-is-undermining-democracy/",
+      "source_reported_at": "2026-10-15T11:25:45Z",
+      "observed_at": "2026-10-18T15:58:49.820277Z",
+      "recorded_at": "2026-10-18T16:04:10.576937Z",
+      "verification_status": "UNVERIFIED_NEWS",
+      "event_family": "ENERGY",
+      "translation_status": "CURATED_CANDIDATE",
+      "rights_id": "rights-e15f9e3f12f4525f",
+      "source_id": "360info",
+      "author": "Christian Downie Australian National University",
+      "translation_presentation_only": true,
+      "official_evidence_status": "NO_OFFICIAL_EVIDENCE_LINKED"
+    },
+    {
+      "headline_zh": "ISO-NE月度風力發電量較去年高約68%",
+      "headline_original": "Monthly wind generation in ISO-NE is about 68% higher than last year",
+      "source": "EIA Today in Energy",
+      "source_url": "https://www.eia.gov/todayinenergy/detail.php?id=68304",
+      "source_reported_at": "2026-10-14T14:00:00Z",
+      "observed_at": "2026-10-18T13:53:49.442089Z",
+      "recorded_at": "2026-10-18T13:59:31.639939Z",
+      "verification_status": "UNVERIFIED_NEWS",
+      "event_family": "MACRO_CONTEXT",
+      "translation_status": "CURATED_CANDIDATE",
+      "rights_id": "rights-7291c7d4470e79e2",
+      "source_id": "eia",
+      "author": null,
+      "translation_presentation_only": true,
+      "official_evidence_status": "NO_OFFICIAL_EVIDENCE_LINKED"
+    },
+    {
+      "headline_zh": "9月整體CPI上升0.6%；汽油價格上漲",
+      "headline_original": "CPI for all items increases 0.6% in September; gasoline rises",
+      "source": "BLS CPI",
+      "source_url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "source_reported_at": "2026-10-14T11:50:31.200000Z",
+      "observed_at": "2026-10-18T13:55:43.260699Z",
+      "recorded_at": "2026-10-18T13:59:31.639939Z",
+      "verification_status": "UNVERIFIED_NEWS",
+      "event_family": "MACRO_DATA",
+      "translation_status": "CURATED_CANDIDATE",
+      "rights_id": "rights-5122a31561b08934",
+      "source_id": "bls_cpi_official",
+      "author": null,
+      "translation_presentation_only": true,
+      "official_evidence_status": "NO_OFFICIAL_EVIDENCE_LINKED"
+    },
+    {
+      "headline_zh": "印度不應把川普的貿易角力變成政治訴求",
+      "headline_original": "India should not turn Trump’s trade battle into a political cause",
+      "source": "360info · Manoj Pant, Shiv Nadar University, Delhi-NCR, and M Rahul, Institute of Economic Growth, Delhi.",
+      "source_url": "https://360info.org/india-should-not-turn-trumps-trade-battle-into-a-political-cause/",
+      "source_reported_at": "2026-10-12T04:31:34Z",
+      "observed_at": "2026-10-18T15:58:49.820277Z",
+      "recorded_at": "2026-10-18T16:04:10.576937Z",
+      "verification_status": "UNVERIFIED_NEWS",
+      "event_family": "TRADE_POLICY",
+      "translation_status": "CURATED_CANDIDATE",
+      "rights_id": "rights-a46541ce586d14b9",
+      "source_id": "360info",
+      "author": "Manoj Pant, Shiv Nadar University, Delhi-NCR, and M Rahul, Institute of Economic Growth, Delhi.",
+      "translation_presentation_only": true,
+      "official_evidence_status": "NO_OFFICIAL_EVIDENCE_LINKED"
+    }
+  ],
+  "event_candidates": [
+    {
+      "event_id": "canonical-event-v0-f44049e1299057df0b75819c1804051e69c5b094a87f2914c3dacb886d21cfa0",
+      "event_title": "U.S. small-scale solar generation has quadrupled in the last decade",
+      "verification_status": "UNVERIFIED_NEWS",
+      "official_evidence_status": "NO_OFFICIAL_EVIDENCE_LINKED",
+      "article_count": 1,
+      "article_references": [
+        "https://www.eia.gov/todayinenergy/detail.php?id=68324"
+      ]
+    },
+    {
+      "event_id": "canonical-event-v0-8482ee03a4d011c228d04e01838dee95ad59749ed3263fbb7213950029fd24f3",
+      "event_title": "CPI for all items increases 0.6% in September; gasoline rises",
+      "verification_status": "UNVERIFIED_NEWS",
+      "official_evidence_status": "NO_OFFICIAL_EVIDENCE_LINKED",
+      "article_count": 1,
+      "article_references": [
+        "https://www.bls.gov/news.release/archives/cpi_10142026.htm"
+      ]
+    },
+    {
+      "event_id": "canonical-event-v0-4f0b7557f7a59c0e1a64c246488213596b8dc40ab376bd1e3c603180dc647511",
+      "event_title": "PJM, ERCOT, and SWPP all set peak load records this summer",
+      "verification_status": "UNVERIFIED_NEWS",
+      "official_evidence_status": "NO_OFFICIAL_EVIDENCE_LINKED",
+      "article_count": 1,
+      "article_references": [
+        "https://www.eia.gov/todayinenergy/detail.php?id=68305"
+      ]
+    },
+    {
+      "event_id": "canonical-event-v0-9e95deb1e3abf30c8760a513464c860a26bff54fa7aeff8ce0b2fe023c6abfc3",
+      "event_title": "How the fossil fuel industry ‘captured’ Australia and maintains its political dominance",
+      "verification_status": "UNVERIFIED_NEWS",
+      "official_evidence_status": "NO_OFFICIAL_EVIDENCE_LINKED",
+      "article_count": 1,
+      "article_references": [
+        "https://360info.org/how-the-fossil-fuel-industry-captured-australia-and-maintains-its-political-dominance/"
+      ]
+    },
+    {
+      "event_id": "canonical-event-v0-eeab82698a2110dcc18d693cef77d410ce3a67c731a9f5ff7d70844689f3ae6c",
+      "event_title": "How fossil fuel lobby is undermining democracy",
+      "verification_status": "UNVERIFIED_NEWS",
+      "official_evidence_status": "NO_OFFICIAL_EVIDENCE_LINKED",
+      "article_count": 1,
+      "article_references": [
+        "https://360info.org/how-fossil-fuel-lobby-is-undermining-democracy/"
+      ]
+    },
+    {
+      "event_id": "canonical-event-v0-4bf7013e38979a0b7a92801cbf93fa4265206669f0db701228fbfb9513d34b53",
+      "event_title": "Monthly wind generation in ISO-NE is about 68% higher than last year",
+      "verification_status": "UNVERIFIED_NEWS",
+      "official_evidence_status": "NO_OFFICIAL_EVIDENCE_LINKED",
+      "article_count": 1,
+      "article_references": [
+        "https://www.eia.gov/todayinenergy/detail.php?id=68304"
+      ]
+    },
+    {
+      "event_id": "canonical-event-v0-900961bad74716b53b5801288c75bd002edcc7a73d58eb833adb58aa048bd9ea",
+      "event_title": "India should not turn Trump’s trade battle into a political cause",
+      "verification_status": "UNVERIFIED_NEWS",
+      "official_evidence_status": "NO_OFFICIAL_EVIDENCE_LINKED",
+      "article_count": 1,
+      "article_references": [
+        "https://360info.org/india-should-not-turn-trumps-trade-battle-into-a-political-cause/"
+      ]
+    }
+  ],
+  "gateway_release": "M1-20261020-v1",
+  "source_snapshot_sha256": "bdb0e8e3d9cde6acc07c492162baf3662bc1ed660e32e4402b7b05fafd896d7e",
+  "compact_source_sha256": "05e1f41cab2624381ee0d5535a0fc0459787e2f4ba364bcf36aec1e32bcceed5",
+  "latest_actual_observation_at": "2026-10-18T15:58:49.820277Z",
+  "observation_definition": "Maximum observed_at among these included saved articles; not continuous collection or proof of globally durable first-seen.",
+  "timestamp_semantics": {
+    "source_reported_at": "Source-reported publication time, never system acquisition time.",
+    "observed_at": "Actual acquisition time retained from the saved local observation; historical global first-seen is not proven.",
+    "recorded_at": "Recording time retained from the saved snapshot.",
+    "gateway_build_at": "Static release build timestamp only; never replaces publication/observation/recording."
+  },
+  "durable_first_seen_status": "FIRST_SEEN_NOT_PROVEN",
+  "frozen_macroview_status": "UNAVAILABLE_NO_APPROVED_LEDGER",
+  "authoritative_official_verification": "NO_OFFICIAL_EVIDENCE_LINKED",
+  "source_rights_url": "https://macro-radar-llm-gateway-20261020.onrender.com/source-rights.json"
+}
