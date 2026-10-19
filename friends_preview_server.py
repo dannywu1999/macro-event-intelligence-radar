@@ -1,8 +1,8 @@
-"""Friends-only saved public snapshot server. No production entry point, store or collector."""
+"""Public read-only saved metadata preview. No production entry point, store or collector."""
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 from urllib.parse import urlsplit,parse_qs
-import base64,hashlib,hmac,json,os,re,sys,threading
+import hashlib,json,os,sys,threading
 sys.dont_write_bytecode=True
 ROOT=Path(__file__).resolve().parent
 OFF=('RADAR_LIVE_ECB','RADAR_LIVE_EIA','RADAR_LIVE_GUARDIAN','RADAR_LIVE_MARKET_WATCH','RADAR_LIVE_NEWS','RADAR_LIVE_UN_NEWS','RADAR_NEWS_CAPTURE','RADAR_PERSIST_INTELLIGENCE')
@@ -19,18 +19,13 @@ def configuration():
  if os.environ.get('FRIENDS_PREVIEW_MODE')!='1' or os.environ.get('RADAR_DEMO_MODE')!='1' or any(os.environ.get(k)!='0' for k in OFF):raise StartupRejected('CONFIG_REQUIRED_OFF')
  # Legacy optional aliases must not create even an apparent live capability.
  if any(v.strip() not in ('','0') for k,v in os.environ.items() if (k.startswith('RADAR_LIVE_') and k not in OFF) or k.startswith(('GLOBAL_EVENT_RADAR_','CLOUDFLARE_','BROKER_','PAPER_TRADING','LIVE_TRADING'))):raise StartupRejected('CONFIG_UNEXPECTED_RUNTIME')
- user=os.environ.get('FRIENDS_PREVIEW_USERNAME','');password=os.environ.get('FRIENDS_PREVIEW_PASSWORD','').rstrip('\r\n')
- if not re.fullmatch(r'[A-Za-z0-9_.-]{3,64}',user) or ':' in user:raise StartupRejected('USERNAME_INVALID')
- if not password:raise StartupRejected('PASSWORD_MISSING')
- if not 24<=len(password)<=256:raise StartupRejected('PASSWORD_LENGTH_INVALID')
- if any(ord(c)<32 for c in password):raise StartupRejected('PASSWORD_CONTROL_CHARACTER')
  host=os.environ.get('HOST','0.0.0.0')
  try:port=int(os.environ.get('PORT','8765'))
  except (ValueError,TypeError):raise StartupRejected('CONFIG_BIND') from None
  if host not in ('0.0.0.0','127.0.0.1') or not 1<=port<=65535:raise StartupRejected('CONFIG_BIND')
  local=os.environ.get('FRIENDS_ALLOW_LOOPBACK_HTTP','0')=='1'
  if local and (host!='127.0.0.1' or os.environ.get('RENDER')):raise StartupRejected('CONFIG_LOOPBACK')
- return host,port,hashlib.sha256(user.encode()).digest(),hashlib.sha256(password.encode()).digest(),local
+ return host,port,local
 def verify_package():
  try:raw=(ROOT/'FRIENDS_PACKAGE_MANIFEST.json').read_text(encoding='utf-8')
  except OSError:raise StartupRejected('MANIFEST_READ') from None
@@ -77,22 +72,12 @@ class Handler(BaseHTTPRequestHandler):
   self.send_response(code);self.send_header('Content-Type',content);self.send_header('Content-Length',str(len(data)))
   for k,v in {'Cache-Control':'no-store, private, max-age=0','Pragma':'no-cache','Vary':'Authorization','X-Robots-Tag':'noindex, nofollow, noarchive','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY','Referrer-Policy':'no-referrer','Content-Security-Policy':"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"}.items():self.send_header(k,v)
   if self.headers.get('X-Forwarded-Proto')=='https':self.send_header('Strict-Transport-Security','max-age=86400')
-  if challenge:self.send_header('WWW-Authenticate','Basic realm="MacroRadar Friends Preview", charset="UTF-8"')
   self.end_headers()
   if self.command!='HEAD':self.wfile.write(data)
  def send_error(self,code,message=None,explain=None):self.reply(code,{'error':'REQUEST_REJECTED'})
  def authenticated(self):
   if not self.server.loopback_http and self.headers.get('X-Forwarded-Proto')!='https':self.reply(426,{'error':'HTTPS_REQUIRED'});return False
-  headers=self.headers.get_all('Authorization',[]);valid=False
-  try:
-   if len(headers)!=1 or len(headers[0])>1024:raise ValueError()
-   scheme,encoded=headers[0].split(' ',1)
-   if scheme.lower()!='basic':raise ValueError()
-   raw=base64.b64decode(encoded,validate=True).decode('utf-8');user,password=raw.split(':',1)
-   a=hmac.compare_digest(hashlib.sha256(user.encode()).digest(),self.server.user_hash);b=hmac.compare_digest(hashlib.sha256(password.encode()).digest(),self.server.password_hash);valid=a & b
-  except (ValueError,UnicodeError):pass
-  if not valid:self.reply(401,{'error':'AUTHENTICATION_REQUIRED'},challenge=True)
-  return valid
+  return True
  def do_GET(self):
   try:
    if len(self.path)>4096:self.reply(414,{'error':'REQUEST_TOO_LONG'});return
@@ -127,7 +112,7 @@ class Handler(BaseHTTPRequestHandler):
  do_TRACE=do_GET
  do_CONNECT=do_GET
 def main():
- try:host,port,user,password,local=configuration()
+ try:host,port,local=configuration()
  except StartupRejected as exc:return startup_rejected(exc.code)
  except Exception:return startup_rejected('CONFIG_INVALID')
  try:views=verify_package()
@@ -136,7 +121,7 @@ def main():
  try:install_readonly_guard()
  except Exception:return startup_rejected('READONLY_GUARD_FAILED')
  try:
-  server=Server((host,port),Handler);server.user_hash=user;server.password_hash=password;server.loopback_http=local;server.views=views
+  server=Server((host,port),Handler);server.loopback_http=local;server.views=views
  except Exception:return startup_rejected('BIND_FAILED')
  sys.stderr.write('FRIENDS_PREVIEW_READY_SAVED_READ_ONLY\n')
  try:server.serve_forever()
