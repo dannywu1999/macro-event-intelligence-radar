@@ -7,28 +7,43 @@ sys.dont_write_bytecode=True
 ROOT=Path(__file__).resolve().parent
 OFF=('RADAR_LIVE_ECB','RADAR_LIVE_EIA','RADAR_LIVE_GUARDIAN','RADAR_LIVE_MARKET_WATCH','RADAR_LIVE_NEWS','RADAR_LIVE_UN_NEWS','RADAR_NEWS_CAPTURE','RADAR_PERSIST_INTELLIGENCE')
 ASSETS={'/ui/'+n for n in ('radar_product_workbench.js','radar_product_workbench.css','radar_headline_presentation.js')}
+
+# Only fixed, reviewed categories may reach startup logs. Never print exception text.
+STARTUP_CODES=frozenset(('CONFIG_REQUIRED_OFF','CONFIG_UNEXPECTED_RUNTIME','CONFIG_CREDENTIALS','CONFIG_BIND','CONFIG_LOOPBACK','CONFIG_INVALID','MANIFEST_READ','MANIFEST_INVALID','PACKAGE_INVENTORY','PACKAGE_HASH','PUBLIC_DATA_INVALID','PACKAGE_READ','READONLY_GUARD_FAILED','BIND_FAILED'))
+class StartupRejected(ValueError):
+ def __init__(self,code):self.code=code if code in STARTUP_CODES else 'CONFIG_INVALID';super().__init__(self.code)
+def startup_rejected(code):
+ safe=code if code in STARTUP_CODES else 'CONFIG_INVALID'
+ sys.stderr.write('FRIENDS_STARTUP_REJECTED category='+safe+'\n');return 2
 def configuration():
- if os.environ.get('FRIENDS_PREVIEW_MODE')!='1' or os.environ.get('RADAR_DEMO_MODE')!='1' or any(os.environ.get(k)!='0' for k in OFF):raise ValueError('FRIENDS_REQUIRED_OFF_CONFIG_INVALID')
+ if os.environ.get('FRIENDS_PREVIEW_MODE')!='1' or os.environ.get('RADAR_DEMO_MODE')!='1' or any(os.environ.get(k)!='0' for k in OFF):raise StartupRejected('CONFIG_REQUIRED_OFF')
  # Legacy optional aliases must not create even an apparent live capability.
- if any(v.strip() not in ('','0') for k,v in os.environ.items() if (k.startswith('RADAR_LIVE_') and k not in OFF) or k.startswith(('GLOBAL_EVENT_RADAR_','CLOUDFLARE_','BROKER_','PAPER_TRADING','LIVE_TRADING'))):raise ValueError('FRIENDS_UNEXPECTED_RUNTIME_CONFIG')
+ if any(v.strip() not in ('','0') for k,v in os.environ.items() if (k.startswith('RADAR_LIVE_') and k not in OFF) or k.startswith(('GLOBAL_EVENT_RADAR_','CLOUDFLARE_','BROKER_','PAPER_TRADING','LIVE_TRADING'))):raise StartupRejected('CONFIG_UNEXPECTED_RUNTIME')
  user=os.environ.get('FRIENDS_PREVIEW_USERNAME','');password=os.environ.get('FRIENDS_PREVIEW_PASSWORD','')
- if not re.fullmatch(r'[A-Za-z0-9_.-]{3,64}',user) or not 24<=len(password)<=256 or ':' in user or any(ord(c)<32 for c in password):raise ValueError('FRIENDS_CREDENTIAL_CONFIG_INVALID')
- host=os.environ.get('HOST','0.0.0.0');port=int(os.environ.get('PORT','8765'))
- if host not in ('0.0.0.0','127.0.0.1') or not 1<=port<=65535:raise ValueError('FRIENDS_BIND_INVALID')
+ if not re.fullmatch(r'[A-Za-z0-9_.-]{3,64}',user) or not 24<=len(password)<=256 or ':' in user or any(ord(c)<32 for c in password):raise StartupRejected('CONFIG_CREDENTIALS')
+ host=os.environ.get('HOST','0.0.0.0')
+ try:port=int(os.environ.get('PORT','8765'))
+ except (ValueError,TypeError):raise StartupRejected('CONFIG_BIND') from None
+ if host not in ('0.0.0.0','127.0.0.1') or not 1<=port<=65535:raise StartupRejected('CONFIG_BIND')
  local=os.environ.get('FRIENDS_ALLOW_LOOPBACK_HTTP','0')=='1'
- if local and (host!='127.0.0.1' or os.environ.get('RENDER')):raise ValueError('FRIENDS_LOOPBACK_EXCEPTION_FORBIDDEN')
+ if local and (host!='127.0.0.1' or os.environ.get('RENDER')):raise StartupRejected('CONFIG_LOOPBACK')
  return host,port,hashlib.sha256(user.encode()).digest(),hashlib.sha256(password.encode()).digest(),local
 def verify_package():
- m=json.loads((ROOT/'FRIENDS_PACKAGE_MANIFEST.json').read_text(encoding='utf-8'))
+ try:raw=(ROOT/'FRIENDS_PACKAGE_MANIFEST.json').read_text(encoding='utf-8')
+ except OSError:raise StartupRejected('MANIFEST_READ') from None
+ try:
+  m=json.loads(raw)
+  if not isinstance(m,dict) or not isinstance(m.get('files'),dict):raise ValueError()
+ except (ValueError,TypeError):raise StartupRejected('MANIFEST_INVALID') from None
  expected=set(m['files'])|{'FRIENDS_PACKAGE_MANIFEST.json'}
  actual={p.relative_to(ROOT).as_posix() for p in ROOT.rglob('*') if p.is_file() and '.git' not in p.relative_to(ROOT).parts}
- if expected!=actual:raise ValueError('FRIENDS_PACKAGE_INVENTORY_INVALID')
+ if expected!=actual:raise StartupRejected('PACKAGE_INVENTORY')
  for name,digest in m['files'].items():
   p=ROOT/name
-  if p.resolve().is_relative_to(ROOT.resolve()) is False or p.is_symlink() or hashlib.sha256(p.read_bytes()).hexdigest()!=digest:raise ValueError('FRIENDS_PACKAGE_HASH_INVALID')
+  if p.resolve().is_relative_to(ROOT.resolve()) is False or p.is_symlink() or hashlib.sha256(p.read_bytes()).hexdigest()!=digest:raise StartupRejected('PACKAGE_HASH')
  views={(profile,window):json.loads((ROOT/'data'/(profile+'_'+window+'.json')).read_text(encoding='utf-8')) for profile in ('public','baseline') for window in ('48','168')}
  for v in views.values():
-  if v.get('data_scope')!='FRIENDS_PREVIEW_SAVED_PUBLIC_METADATA' or any(i.get('local_observation',{}).get('public_usage')!='PUBLIC_ELIGIBLE' for i in v['items']):raise ValueError('FRIENDS_PUBLIC_DATA_INVALID')
+  if v.get('data_scope')!='FRIENDS_PREVIEW_SAVED_PUBLIC_METADATA' or any(i.get('local_observation',{}).get('public_usage')!='PUBLIC_ELIGIBLE' for i in v['items']):raise StartupRejected('PUBLIC_DATA_INVALID')
  return views
 def install_readonly_guard():
  def audit(event,args):
@@ -109,10 +124,17 @@ class Handler(BaseHTTPRequestHandler):
  do_TRACE=do_GET
  do_CONNECT=do_GET
 def main():
+ try:host,port,user,password,local=configuration()
+ except StartupRejected as exc:return startup_rejected(exc.code)
+ except Exception:return startup_rejected('CONFIG_INVALID')
+ try:views=verify_package()
+ except StartupRejected as exc:return startup_rejected(exc.code)
+ except Exception:return startup_rejected('PACKAGE_READ')
+ try:install_readonly_guard()
+ except Exception:return startup_rejected('READONLY_GUARD_FAILED')
  try:
-  host,port,user,password,local=configuration();views=verify_package();install_readonly_guard()
   server=Server((host,port),Handler);server.user_hash=user;server.password_hash=password;server.loopback_http=local;server.views=views
- except (OSError,ValueError,KeyError,TypeError):sys.stderr.write('FRIENDS_STARTUP_REJECTED\n');return 2
+ except Exception:return startup_rejected('BIND_FAILED')
  sys.stderr.write('FRIENDS_PREVIEW_READY_SAVED_READ_ONLY\n')
  try:server.serve_forever()
  except KeyboardInterrupt:pass
