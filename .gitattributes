@@ -1,4 +1,0 @@
-# Preserve the exact ECB provider bytes verified by research receipts.
-demo/radar_public/market_reaction/ecb_eurusd_2025_03.csv -text
-demo/radar_public/market_reaction/ecb_eurusd_2025_04.csv -text
-demo/radar_public/market_reaction/ecb_eurusd_2025_06.csv -text

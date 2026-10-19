@@ -1,58 +1,25 @@
-# Radar-only uses Python's standard library; no dependency installation needed.
 FROM python:3.12.14-slim
 WORKDIR /app
-COPY tools/stage1b_historical_campaign/__init__.py tools/stage1b_historical_campaign/__init__.py
-COPY tools/stage1b_historical_campaign/global_event_radar_read_adapter.py tools/stage1b_historical_campaign/global_event_radar_read_adapter.py
-COPY tools/stage1b_historical_campaign/radar_web_server.py tools/stage1b_historical_campaign/radar_web_server.py
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 HOST=0.0.0.0
+COPY data/SOURCE_RIGHTS.json data/SOURCE_RIGHTS.json
+COPY data/baseline_168.json data/baseline_168.json
+COPY data/baseline_48.json data/baseline_48.json
+COPY data/ecb/ecb_2025_03_06.json data/ecb/ecb_2025_03_06.json
+COPY data/ecb/ecb_2025_04_17.json data/ecb/ecb_2025_04_17.json
+COPY data/ecb/ecb_2025_06_05.json data/ecb/ecb_2025_06_05.json
+COPY data/ecb/ecb_eurusd_2025_03.csv data/ecb/ecb_eurusd_2025_03.csv
+COPY data/ecb/ecb_eurusd_2025_04.csv data/ecb/ecb_eurusd_2025_04.csv
+COPY data/ecb/ecb_eurusd_2025_06.csv data/ecb/ecb_eurusd_2025_06.csv
+COPY data/public_168.json data/public_168.json
+COPY data/public_48.json data/public_48.json
+COPY friends_preview_server.py friends_preview_server.py
+COPY ui/radar_headline_presentation.js ui/radar_headline_presentation.js
+COPY ui/radar_product_workbench.css ui/radar_product_workbench.css
+COPY ui/radar_product_workbench.js ui/radar_product_workbench.js
 COPY ui/radar_public_showcase_v1.html ui/radar_public_showcase_v1.html
-COPY ui/radar_demo_translations.js ui/radar_demo_translations.js
-COPY tools/stage1b_historical_campaign/eia_live_ingestion.py tools/stage1b_historical_campaign/eia_live_ingestion.py
-COPY tools/stage1b_historical_campaign/live_source_ingestion.py tools/stage1b_historical_campaign/live_source_ingestion.py
-COPY tools/stage1b_historical_campaign/ecb_live_ingestion.py tools/stage1b_historical_campaign/ecb_live_ingestion.py
-COPY demo/radar_public/news/rss_headlines_eia_snapshot.csv demo/radar_public/news/rss_headlines_eia_snapshot.csv
-COPY demo/radar_public/official-packet.json demo/radar_public/official-packet.json
-COPY demo/radar_public/ecb-official-packet.json demo/radar_public/ecb-official-packet.json
-COPY tools/stage1b_historical_campaign/radar_market_expectations.py tools/stage1b_historical_campaign/radar_market_expectations.py
-COPY tools/stage1b_historical_campaign/radar_event_expectation_linker.py tools/stage1b_historical_campaign/radar_event_expectation_linker.py
-COPY tools/stage1b_historical_campaign/radar_macroview_freeze.py tools/stage1b_historical_campaign/radar_macroview_freeze.py
-COPY tools/stage1b_historical_campaign/radar_intelligence_store.py tools/stage1b_historical_campaign/radar_intelligence_store.py
-COPY tools/stage1b_historical_campaign/radar_reality_replay.py tools/stage1b_historical_campaign/radar_reality_replay.py
-COPY demo/radar_public/metadata.json demo/radar_public/metadata.json
-# The platform supplies PORT. Without one, the application's local fallback remains.
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 HOST=0.0.0.0 RADAR_DATA_ROOT=/data
+COPY Dockerfile Dockerfile
+COPY .dockerignore .dockerignore
+COPY FRIENDS_PACKAGE_MANIFEST.json FRIENDS_PACKAGE_MANIFEST.json
 USER 65532:65532
 EXPOSE 8765
-ENTRYPOINT ["python", "-m", "tools.stage1b_historical_campaign.radar_web_server", "--serve", "--radar-only"]
-
-
-COPY tools/stage1b_historical_campaign/radar_context_intelligence.py tools/stage1b_historical_campaign/radar_context_intelligence.py
-
-COPY tools/stage1b_historical_campaign/radar_market_reality.py tools/stage1b_historical_campaign/radar_market_reality.py
-COPY ui/radar_interactive_map.js ui/radar_interactive_map.js
-COPY ui/vendor/maplibre-gl.js ui/vendor/maplibre-gl.js
-COPY ui/vendor/maplibre-gl.css ui/vendor/maplibre-gl.css
-COPY ui/vendor/MAPLIBRE-LICENSE.txt ui/vendor/MAPLIBRE-LICENSE.txt
-
-COPY tools/stage1b_historical_campaign/radar_prediction_market_watch.py tools/stage1b_historical_campaign/radar_prediction_market_watch.py
-
-COPY ui/radar_market_translations.js ui/radar_market_translations.js
-
-COPY tools/stage1b_historical_campaign/broad_news_ingestion.py tools/stage1b_historical_campaign/broad_news_ingestion.py
-
-COPY tools/stage1b_historical_campaign/radar_news_freshness.py tools/stage1b_historical_campaign/radar_news_freshness.py
-
-COPY tools/stage1b_historical_campaign/radar_news_intelligence.py tools/stage1b_historical_campaign/radar_news_intelligence.py
-
-COPY tools/stage1b_historical_campaign/radar_impact_hypotheses.py tools/stage1b_historical_campaign/radar_impact_hypotheses.py
-
-COPY tools/stage1b_historical_campaign/radar_market_reaction.py tools/stage1b_historical_campaign/radar_market_reaction.py
-COPY demo/radar_public/market_reaction/ecb_2025_06_05.json demo/radar_public/market_reaction/ecb_2025_06_05.json
-COPY demo/radar_public/market_reaction/ecb_eurusd_2025_06.csv demo/radar_public/market_reaction/ecb_eurusd_2025_06.csv
-COPY demo/radar_public/market_reaction/ecb_2025_03_06.json demo/radar_public/market_reaction/ecb_2025_03_06.json
-COPY demo/radar_public/market_reaction/ecb_eurusd_2025_03.csv demo/radar_public/market_reaction/ecb_eurusd_2025_03.csv
-COPY demo/radar_public/market_reaction/ecb_2025_04_17.json demo/radar_public/market_reaction/ecb_2025_04_17.json
-COPY demo/radar_public/market_reaction/ecb_eurusd_2025_04.csv demo/radar_public/market_reaction/ecb_eurusd_2025_04.csv
-
-COPY tools/stage1b_historical_campaign/radar_news_prospective.py tools/stage1b_historical_campaign/radar_news_prospective.py
-
-COPY tools/stage1b_historical_campaign/radar_news_capture_service.py tools/stage1b_historical_campaign/radar_news_capture_service.py
+ENTRYPOINT ["python", "-B", "friends_preview_server.py"]
