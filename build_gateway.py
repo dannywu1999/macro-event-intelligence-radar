@@ -202,12 +202,19 @@ def build(output=None):
     if digest(raw)!=release['source_sha256']:raise ValueError('PINNED_SOURCE_HASH_MISMATCH')
     output=Path(output) if output else ROOT/'public';output.mkdir(parents=True,exist_ok=True)
     existing={p.name for p in output.iterdir()}
-    if existing-PUBLIC_FILES:raise ValueError('UNREVIEWED_PUBLIC_FILE')
+    # The original eleven M1 assets stay byte-identical. M2 is a separate,
+    # explicitly inventoried subtree, never a replacement of saved M1 data.
+    from build_event_case import inventory
+    if existing-PUBLIC_FILES-{'research'}:raise ValueError('UNREVIEWED_PUBLIC_FILE')
+    inventory(output/'research')
     values=render(json.loads(raw),release)
     for name,value in values.items():(output/name).write_bytes(value)
-    assert {p.name for p in output.iterdir()}==PUBLIC_FILES
+    assert {p.name for p in output.iterdir()}-{'research'}==PUBLIC_FILES
     return values
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--output',type=Path);args=parser.parse_args()
     values=build(args.output)
+    from build_event_case import build as build_case
+    case_values=build_case(ROOT,args.output or ROOT/'public')
+    print('M2_CASE_BUILD=PASS; files='+str(len(case_values)))
     print('STATIC_GATEWAY_BUILD=PASS; files='+str(len(values))+'; bytes='+str(sum(map(len,values.values()))))

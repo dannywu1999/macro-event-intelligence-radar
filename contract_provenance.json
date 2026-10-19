@@ -1,0 +1,22 @@
+{
+  "upstream_file": "global_event_radar_read_adapter.py",
+  "upstream_sha256": "be1c064b633d9bc21092fc5b4a31873118780202c6b0e1eb75b9176d2101f479",
+  "copied_functions": [
+    "_utc",
+    "_iso",
+    "_text",
+    "_raw_text",
+    "_feed_order_key",
+    "_rate_signature",
+    "canonical_merge_evidence",
+    "build_canonical_events",
+    "_artifact_fingerprint_valid",
+    "_valid_url",
+    "_official_packet",
+    "_resolve_official_event",
+    "build_official_evidence_projection",
+    "build_event_timelines"
+  ],
+  "method": "Exact ast.get_source_segment; no behavior changes",
+  "extracted_sha256": "9d3f3d3ce7d90ebdb7865aeac9de84923a8606a2177632b555d85c36003561ec"
+}

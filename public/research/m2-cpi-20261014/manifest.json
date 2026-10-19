@@ -1,0 +1,27 @@
+{
+  "schema": "M2_CASE_MANIFEST_V1",
+  "self_excluded": true,
+  "case_release": "M2-FIRST-VERIFIED-EVENT-20261020-v1",
+  "files": {
+    "asof-examples.json": {
+      "sha256": "0cc99a812a661337e078b4c6275e8ff2dc2af6bd5aefa809025d103dc636b132",
+      "bytes": 11313
+    },
+    "case.json": {
+      "sha256": "4b0e44d714b2ebf9cd7a4fa6c18a46d450fe6db071fd4080cf887c44934e7129",
+      "bytes": 19876
+    },
+    "case.md": {
+      "sha256": "ce69ae14ff1332ca11b1e24c50f729673ec16f3c0aaafc095d2bff76870406c9",
+      "bytes": 6469
+    },
+    "case.txt": {
+      "sha256": "ce69ae14ff1332ca11b1e24c50f729673ec16f3c0aaafc095d2bff76870406c9",
+      "bytes": 6469
+    },
+    "index.html": {
+      "sha256": "8c3496e617ba82ee5d3e1f85a0dea82646951f7fffe1729f5d926b27cc131f0d",
+      "bytes": 8862
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "schema": "M2_BUILD_INPUT_PINS_V1",
+  "inputs": {
+    "event_case.json": "6ed1c5ff3de5d8617dea9750d338e5c3ca272a742efcb720e53e4f1a24dae1ee",
+    "contracts_v0.py": "99d6d86f543f5fd8c8f32373b36107a500d7cd49a8f8224b5878b02b42ee6bb4",
+    "contract_provenance.json": "33b761e1bdfe01caeffcd24eadd031947ad944a487ea3438345dcae25073041d",
+    "m1_preservation.json": "ba4e9fe06ab4ac89fcf3d067028c7faaf7c201c73fdfab3f4566a9ede485f4fa"
+  }
+}

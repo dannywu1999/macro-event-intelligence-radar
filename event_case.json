@@ -1,0 +1,350 @@
+{
+  "schema": "MACRO_RADAR_EVENT_INTELLIGENCE_CASE_V1_RESEARCH_PREVIEW",
+  "release": "M2-FIRST-VERIFIED-EVENT-20261020-v1",
+  "created_at": "2026-10-19T18:31:02.902236Z",
+  "as_of": "2026-10-19T18:31:02.902236Z",
+  "title_zh": "美國9月CPI月增0.6%：汽油推升整體通膨，核心月增0.3%",
+  "title_en": "CPI for all items increases 0.6% in September; gasoline rises",
+  "reference_period": "2026-09",
+  "release_date": "2026-10-14",
+  "category": "INFLATION_MACRO_DATA",
+  "why_it_matters_zh": "CPI 是理解美國物價壓力與政策討論的重要發布。整體與核心分項須分開看；本案例核對官方統計，不推定利率決策或資產漲跌。",
+  "scope": "ONE_SHOT_SAVED_RESEARCH_CASE_NOT_LIVE",
+  "live_feed": false,
+  "trading_signal": false,
+  "causality": "NOT_ESTABLISHED",
+  "frozen_macroview_status": "UNAVAILABLE_NO_APPROVED_LEDGER",
+  "durable_first_seen_status": "FIRST_SEEN_NOT_PROVEN",
+  "detection_latency": "UNKNOWN",
+  "polymarket": {
+    "status": "UNAVAILABLE",
+    "value": null
+  },
+  "market_reaction": {
+    "status": "NOT_MEASURED",
+    "value": null
+  },
+  "canonical_event": {
+    "event_id": "canonical-event-v0-8482ee03a4d011c228d04e01838dee95ad59749ed3263fbb7213950029fd24f3",
+    "event_title": "CPI for all items increases 0.6% in September; gasoline rises",
+    "article_count": 1,
+    "article_references": [
+      "https://www.bls.gov/news.release/archives/cpi_10142026.htm"
+    ],
+    "source_names": [
+      "BLS CPI"
+    ],
+    "first_detected_at": "2026-10-18T13:55:43.260699Z",
+    "latest_article_at": "2026-10-14T11:50:31.200000Z",
+    "verification_status": "UNVERIFIED_NEWS",
+    "event_occurred_at": null,
+    "grouping": {
+      "rule": "SINGLE_ARTICLE_INSUFFICIENT_MERGE_EVIDENCE",
+      "pair_evidence": []
+    },
+    "official_evidence_count": 4,
+    "official_evidence_ids": [
+      "official-evidence-v0-1dc57af35e1e6c5c567217bdf7746c67f21a9d2b463ee1457511e5cdf03d1b5b",
+      "official-evidence-v0-5033be101267404d662b1046c7a7465f6d642cdfce0b79bd4139b7f5f97d1c98",
+      "official-evidence-v0-72ca271d3ba5bc4fcb5989b0cf23daba9225257eda80eee5f69907f393f36433",
+      "official-evidence-v0-e3efb5d43c39b75b449c092c8dbce82117399b6ba55c4dd32dbb141d02540424"
+    ],
+    "official_evidence_status": "FACT_PROPOSITIONS_LINKED",
+    "first_detected_scope": "SAVED_LOCAL_OBSERVATION_NOT_GLOBAL_FIRST_SEEN",
+    "durable_first_seen_proven": false
+  },
+  "discovery": {
+    "item": {
+      "title": "CPI for all items increases 0.6% in September; gasoline rises",
+      "article_reference": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "reported_at": "2026-10-14T11:50:31.200000Z",
+      "reported_time_kind": "REPORTED_TIME",
+      "observed_at": "2026-10-18T13:55:43.260699Z",
+      "recorded_at": "2026-10-18T13:59:31.639939Z",
+      "news_source": {
+        "name": "BLS CPI",
+        "url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm"
+      },
+      "verification_status": "UNVERIFIED_NEWS"
+    },
+    "source_item_id": "cpi-2026_10_14__07_50_31",
+    "source_published_raw": "2026-10-14T07:50:31.2-04:00",
+    "retrieved_at": "2026-10-18T13:55:43.260699Z",
+    "recorded_at": "2026-10-18T13:59:31.639939Z",
+    "receipt_sha256": "3c8811ba344eaa6b649d7ecdc2a402e9b2824704eb9155acfcfce1631ecf676b",
+    "response_sha256": "a5f2a686cebc14c09693431899d7e4ce56c15c752febbdba1156b30d33f1f387",
+    "original_m1_record_preserved": true,
+    "authority_role": "DISCOVERY_ONLY",
+    "first_observed_scope": "SAVED_LOCAL_OBSERVATION_NOT_GLOBAL_FIRST_SEEN"
+  },
+  "official_document": {
+    "source_url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+    "authority_name": "U.S. Bureau of Labor Statistics",
+    "document_reference": "USDL-26-1574",
+    "release_date": "2026-10-14",
+    "publication_precision": "DATE_ONLY",
+    "published_at": null,
+    "scheduled_embargo_release_at": "2026-10-14T12:30:00Z",
+    "scheduled_embargo_role": "ANNOUNCED_EMBARGO_NOT_MEASURED_PUBLICATION",
+    "retrieved_at": "2026-10-19T18:28:56.773178Z",
+    "recorded_at": "2026-10-19T18:28:56.775123Z",
+    "first_observed_at_in_m2": "2026-10-19T18:28:56.773178Z",
+    "first_seen_scope": "THIS_M2_DOCUMENT_OBSERVATION_ONLY",
+    "response_sha256": "b9f981390c08f4a530d839495fce582124015b979bac0398bfcc35ffde0544e4",
+    "receipt_sha256": "7966f8994b8a899429d398e54b81573fedfc01547d8a5cb9802700f64001d18a"
+  },
+  "propositions": [
+    {
+      "id": "headline_month",
+      "statement_zh": "美國9月整體 CPI-U 經季節調整月增0.6%。",
+      "support": "DIRECTLY_SUPPORTED",
+      "supporting_excerpt_en": "The Consumer Price Index for All Urban Consumers (CPI-U) increased 0.6 percent on a seasonally adjusted basis in September after rising 0.4 percent in August, the U.S. Bureau of Labor Statistics reported today.",
+      "document_reference": "USDL-26-1574",
+      "source_url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "response_sha256": "b9f981390c08f4a530d839495fce582124015b979bac0398bfcc35ffde0544e4",
+      "available_at": "2026-10-19T18:31:02.902236Z"
+    },
+    {
+      "id": "headline_year",
+      "statement_zh": "截至9月的12個月，整體 CPI-U 未經季節調整年增3.7%。",
+      "support": "DIRECTLY_SUPPORTED",
+      "supporting_excerpt_en": "Over the last 12 months, the all items index increased 3.7 percent before seasonal adjustment.",
+      "document_reference": "USDL-26-1574",
+      "source_url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "response_sha256": "b9f981390c08f4a530d839495fce582124015b979bac0398bfcc35ffde0544e4",
+      "available_at": "2026-10-19T18:31:02.902236Z"
+    },
+    {
+      "id": "core_month",
+      "statement_zh": "扣除食品與能源的 CPI 月增0.3%（季調），與8月相同。",
+      "support": "DIRECTLY_SUPPORTED",
+      "supporting_excerpt_en": "The index for all items less food and energy rose 0.3 percent in September, as it did in August.",
+      "document_reference": "USDL-26-1574",
+      "source_url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "response_sha256": "b9f981390c08f4a530d839495fce582124015b979bac0398bfcc35ffde0544e4",
+      "available_at": "2026-10-19T18:31:02.902236Z"
+    },
+    {
+      "id": "gasoline",
+      "statement_zh": "9月汽油指數月增9.1%（季調），占整體 CPI 當月增幅一半以上。",
+      "support": "DIRECTLY_SUPPORTED",
+      "supporting_excerpt_en": "The index for gasoline rose 9.1 percent in September, accounting for over half of the monthly all items increase.",
+      "document_reference": "USDL-26-1574",
+      "source_url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "response_sha256": "b9f981390c08f4a530d839495fce582124015b979bac0398bfcc35ffde0544e4",
+      "available_at": "2026-10-19T18:31:02.902236Z"
+    }
+  ],
+  "official_packets": [
+    {
+      "authority_role": "FACT_AUTHORITY",
+      "official_confirmation": "OFFICIAL_CONFIRMED",
+      "authority_name": "U.S. Bureau of Labor Statistics",
+      "official_document_reference": "USDL-26-1574",
+      "official_document_title": "CONSUMER PRICE INDEX - SEPTEMBER 2026",
+      "official_source": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "official_fact_proposition": "美國9月整體 CPI-U 經季節調整月增0.6%。",
+      "official_published_at": null,
+      "official_project_first_seen_at": "2026-10-19T18:28:56.773178Z",
+      "official_retrieved_at": "2026-10-19T18:28:56.773178Z",
+      "canonical_event_id": "canonical-event-v0-8482ee03a4d011c228d04e01838dee95ad59749ed3263fbb7213950029fd24f3",
+      "article_reference": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "official_project_first_seen_scope": "THIS_M2_DOCUMENT_OBSERVATION_ONLY"
+    },
+    {
+      "authority_role": "FACT_AUTHORITY",
+      "official_confirmation": "OFFICIAL_CONFIRMED",
+      "authority_name": "U.S. Bureau of Labor Statistics",
+      "official_document_reference": "USDL-26-1574",
+      "official_document_title": "CONSUMER PRICE INDEX - SEPTEMBER 2026",
+      "official_source": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "official_fact_proposition": "截至9月的12個月，整體 CPI-U 未經季節調整年增3.7%。",
+      "official_published_at": null,
+      "official_project_first_seen_at": "2026-10-19T18:28:56.773178Z",
+      "official_retrieved_at": "2026-10-19T18:28:56.773178Z",
+      "canonical_event_id": "canonical-event-v0-8482ee03a4d011c228d04e01838dee95ad59749ed3263fbb7213950029fd24f3",
+      "article_reference": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "official_project_first_seen_scope": "THIS_M2_DOCUMENT_OBSERVATION_ONLY"
+    },
+    {
+      "authority_role": "FACT_AUTHORITY",
+      "official_confirmation": "OFFICIAL_CONFIRMED",
+      "authority_name": "U.S. Bureau of Labor Statistics",
+      "official_document_reference": "USDL-26-1574",
+      "official_document_title": "CONSUMER PRICE INDEX - SEPTEMBER 2026",
+      "official_source": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "official_fact_proposition": "扣除食品與能源的 CPI 月增0.3%（季調），與8月相同。",
+      "official_published_at": null,
+      "official_project_first_seen_at": "2026-10-19T18:28:56.773178Z",
+      "official_retrieved_at": "2026-10-19T18:28:56.773178Z",
+      "canonical_event_id": "canonical-event-v0-8482ee03a4d011c228d04e01838dee95ad59749ed3263fbb7213950029fd24f3",
+      "article_reference": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "official_project_first_seen_scope": "THIS_M2_DOCUMENT_OBSERVATION_ONLY"
+    },
+    {
+      "authority_role": "FACT_AUTHORITY",
+      "official_confirmation": "OFFICIAL_CONFIRMED",
+      "authority_name": "U.S. Bureau of Labor Statistics",
+      "official_document_reference": "USDL-26-1574",
+      "official_document_title": "CONSUMER PRICE INDEX - SEPTEMBER 2026",
+      "official_source": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "official_fact_proposition": "9月汽油指數月增9.1%（季調），占整體 CPI 當月增幅一半以上。",
+      "official_published_at": null,
+      "official_project_first_seen_at": "2026-10-19T18:28:56.773178Z",
+      "official_retrieved_at": "2026-10-19T18:28:56.773178Z",
+      "canonical_event_id": "canonical-event-v0-8482ee03a4d011c228d04e01838dee95ad59749ed3263fbb7213950029fd24f3",
+      "article_reference": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "official_project_first_seen_scope": "THIS_M2_DOCUMENT_OBSERVATION_ONLY"
+    }
+  ],
+  "official_evidence": [
+    {
+      "official_evidence_id": "official-evidence-v0-1dc57af35e1e6c5c567217bdf7746c67f21a9d2b463ee1457511e5cdf03d1b5b",
+      "authority_name": "U.S. Bureau of Labor Statistics",
+      "document_title": "CONSUMER PRICE INDEX - SEPTEMBER 2026",
+      "document_url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "document_reference": "USDL-26-1574",
+      "published_at": null,
+      "fact_proposition": "扣除食品與能源的 CPI 月增0.3%（季調），與8月相同。",
+      "canonical_event_id": "canonical-event-v0-8482ee03a4d011c228d04e01838dee95ad59749ed3263fbb7213950029fd24f3",
+      "evidence_status": "OFFICIAL_CONFIRMED",
+      "link_status": "EXPLICIT_UNIQUE_LINK",
+      "authority_role": "FACT_AUTHORITY",
+      "first_seen_at": "2026-10-19T18:28:56.773178Z",
+      "retrieved_at": "2026-10-19T18:28:56.773178Z",
+      "artifact_fingerprint": null,
+      "effective_at": null,
+      "document_type": null,
+      "first_seen_scope": "THIS_M2_DOCUMENT_OBSERVATION_ONLY",
+      "durable_first_seen_proven": false
+    },
+    {
+      "official_evidence_id": "official-evidence-v0-5033be101267404d662b1046c7a7465f6d642cdfce0b79bd4139b7f5f97d1c98",
+      "authority_name": "U.S. Bureau of Labor Statistics",
+      "document_title": "CONSUMER PRICE INDEX - SEPTEMBER 2026",
+      "document_url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "document_reference": "USDL-26-1574",
+      "published_at": null,
+      "fact_proposition": "截至9月的12個月，整體 CPI-U 未經季節調整年增3.7%。",
+      "canonical_event_id": "canonical-event-v0-8482ee03a4d011c228d04e01838dee95ad59749ed3263fbb7213950029fd24f3",
+      "evidence_status": "OFFICIAL_CONFIRMED",
+      "link_status": "EXPLICIT_UNIQUE_LINK",
+      "authority_role": "FACT_AUTHORITY",
+      "first_seen_at": "2026-10-19T18:28:56.773178Z",
+      "retrieved_at": "2026-10-19T18:28:56.773178Z",
+      "artifact_fingerprint": null,
+      "effective_at": null,
+      "document_type": null,
+      "first_seen_scope": "THIS_M2_DOCUMENT_OBSERVATION_ONLY",
+      "durable_first_seen_proven": false
+    },
+    {
+      "official_evidence_id": "official-evidence-v0-72ca271d3ba5bc4fcb5989b0cf23daba9225257eda80eee5f69907f393f36433",
+      "authority_name": "U.S. Bureau of Labor Statistics",
+      "document_title": "CONSUMER PRICE INDEX - SEPTEMBER 2026",
+      "document_url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "document_reference": "USDL-26-1574",
+      "published_at": null,
+      "fact_proposition": "9月汽油指數月增9.1%（季調），占整體 CPI 當月增幅一半以上。",
+      "canonical_event_id": "canonical-event-v0-8482ee03a4d011c228d04e01838dee95ad59749ed3263fbb7213950029fd24f3",
+      "evidence_status": "OFFICIAL_CONFIRMED",
+      "link_status": "EXPLICIT_UNIQUE_LINK",
+      "authority_role": "FACT_AUTHORITY",
+      "first_seen_at": "2026-10-19T18:28:56.773178Z",
+      "retrieved_at": "2026-10-19T18:28:56.773178Z",
+      "artifact_fingerprint": null,
+      "effective_at": null,
+      "document_type": null,
+      "first_seen_scope": "THIS_M2_DOCUMENT_OBSERVATION_ONLY",
+      "durable_first_seen_proven": false
+    },
+    {
+      "official_evidence_id": "official-evidence-v0-e3efb5d43c39b75b449c092c8dbce82117399b6ba55c4dd32dbb141d02540424",
+      "authority_name": "U.S. Bureau of Labor Statistics",
+      "document_title": "CONSUMER PRICE INDEX - SEPTEMBER 2026",
+      "document_url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "document_reference": "USDL-26-1574",
+      "published_at": null,
+      "fact_proposition": "美國9月整體 CPI-U 經季節調整月增0.6%。",
+      "canonical_event_id": "canonical-event-v0-8482ee03a4d011c228d04e01838dee95ad59749ed3263fbb7213950029fd24f3",
+      "evidence_status": "OFFICIAL_CONFIRMED",
+      "link_status": "EXPLICIT_UNIQUE_LINK",
+      "authority_role": "FACT_AUTHORITY",
+      "first_seen_at": "2026-10-19T18:28:56.773178Z",
+      "retrieved_at": "2026-10-19T18:28:56.773178Z",
+      "artifact_fingerprint": null,
+      "effective_at": null,
+      "document_type": null,
+      "first_seen_scope": "THIS_M2_DOCUMENT_OBSERVATION_ONLY",
+      "durable_first_seen_proven": false
+    }
+  ],
+  "time_conflict": {
+    "status": "UNRESOLVED_SOURCE_CLOCK_CONFLICT",
+    "feed_reported_publication": "2026-10-14T11:50:31.200000Z",
+    "document_scheduled_embargo_release": "2026-10-14T12:30:00Z",
+    "explanation_zh": "Feed 自報時間比文件禁發時間早約39分29秒。兩值原樣保留，未查明原因；禁發時間不是實測上線時間，不能擇一當作可靠偵測延遲起點。"
+  },
+  "preview": {
+    "status": "PREVIEW",
+    "available_at": "2026-10-19T18:31:02.902236Z",
+    "translation_created_at": "2026-10-19T18:31:02.902236Z",
+    "translation_source": "Macro Trading OS / Codex curated Traditional Chinese; unofficial presentation only",
+    "facts_basis": [
+      "headline_month",
+      "headline_year",
+      "core_month",
+      "gasoline"
+    ],
+    "hypotheses_zh": [
+      "若能源成本上升持續，可能經運輸及企業成本影響其他物價；本次資料不足以證明後續傳導。",
+      "若核心物價持續具有黏性，可能影響政策評估；單月CPI不能決定Fed下一次利率行動。",
+      "整體與核心的差異有助區分能源衝擊與廣泛物價壓力，但不能直接預測美元、債券或股票方向。"
+    ],
+    "unknowns_zh": [
+      "未取得市場共識，不能判斷是否超出預期。",
+      "未取得資產價格收據，市場反應為 NOT_MEASURED。",
+      "未取得本次對應Fed政策命題，利率行動為 UNKNOWN。",
+      "沒有核准的持久歷史／Frozen收據，不提供正式PIT回放。",
+      "來源Feed與文件禁發時間互相衝突；偵測延遲 UNKNOWN。"
+    ],
+    "next_evidence_zh": [
+      "核對後續PCE、薪資與服務價格分項是否支持更廣泛的通膨持續性。",
+      "另行取得Fed官方聲明並核對具體政策命題，不能由CPI直接推論政策。",
+      "若未來獲授權，取得有來源及時間的市場預期與價格觀測；不回填成當時已知。"
+    ],
+    "research_gate": "RESEARCH_ONLY_NO_EXECUTION_OR_RISK_VALIDATION"
+  },
+  "unsupported_claims": [
+    {
+      "claim_zh": "本次CPI導致Fed升息",
+      "status": "UNSUPPORTED",
+      "value": null
+    },
+    {
+      "claim_zh": "CPI超出市場預期",
+      "status": "UNKNOWN",
+      "value": null
+    },
+    {
+      "claim_zh": "美元必然上漲",
+      "status": "UNSUPPORTED",
+      "value": null
+    }
+  ],
+  "rights": {
+    "source": "U.S. Bureau of Labor Statistics",
+    "policy_url": "https://www.bls.gov/bls/linksite.htm",
+    "policy_status": "PUBLIC_ELIGIBLE_ATTRIBUTED_BLS_TEXT_ONLY",
+    "policy_retrieved_at": "2026-10-19T18:28:57.286053Z",
+    "policy_response_sha256": "e30595e21e573b9432d11ecdf7c3e4003313cf1f4b7b6ec8387652cb93f12833",
+    "scope": "Attributed BLS headline, numerical propositions, short text evidence; no logos, photos, illustrations or third-party content",
+    "translation": "Unofficial Traditional Chinese adaptation by Macro Trading OS / Codex; original English retained"
+  },
+  "pit_limitations_zh": [
+    "官方原文直到本輪才取得，不能放入10月14日或10月18日的系統已知事實。",
+    "as-of只對這份保存收據做可得性投影，並非正式持久歷史查詢。",
+    "翻譯及研究解讀只在本案例建立後可見，不回填至較早的as-of。",
+    "官方支持範圍僅上述四個統計命題；新聞身份仍為 UNVERIFIED_NEWS。"
+  ]
+}

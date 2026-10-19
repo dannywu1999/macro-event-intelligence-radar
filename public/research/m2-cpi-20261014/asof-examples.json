@@ -1,0 +1,223 @@
+[
+  {
+    "as_of": "2026-10-14T12:30:00Z",
+    "scope": "SAVED_RECEIPT_AVAILABILITY_NOT_PRODUCTION_REPLAY",
+    "ledger_status": "UNAVAILABLE_NO_APPROVED_LEDGER",
+    "event_id": null,
+    "discovery": null,
+    "official_document": null,
+    "propositions": [],
+    "preview": null,
+    "title_zh": null,
+    "status": "UNAVAILABLE",
+    "durable_first_seen_status": "FIRST_SEEN_NOT_PROVEN"
+  },
+  {
+    "as_of": "2026-10-18T13:59:31.639939Z",
+    "scope": "SAVED_RECEIPT_AVAILABILITY_NOT_PRODUCTION_REPLAY",
+    "ledger_status": "UNAVAILABLE_NO_APPROVED_LEDGER",
+    "event_id": "canonical-event-v0-8482ee03a4d011c228d04e01838dee95ad59749ed3263fbb7213950029fd24f3",
+    "discovery": {
+      "item": {
+        "title": "CPI for all items increases 0.6% in September; gasoline rises",
+        "article_reference": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+        "reported_at": "2026-10-14T11:50:31.200000Z",
+        "reported_time_kind": "REPORTED_TIME",
+        "observed_at": "2026-10-18T13:55:43.260699Z",
+        "recorded_at": "2026-10-18T13:59:31.639939Z",
+        "news_source": {
+          "name": "BLS CPI",
+          "url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm"
+        },
+        "verification_status": "UNVERIFIED_NEWS"
+      },
+      "source_item_id": "cpi-2026_10_14__07_50_31",
+      "source_published_raw": "2026-10-14T07:50:31.2-04:00",
+      "retrieved_at": "2026-10-18T13:55:43.260699Z",
+      "recorded_at": "2026-10-18T13:59:31.639939Z",
+      "receipt_sha256": "3c8811ba344eaa6b649d7ecdc2a402e9b2824704eb9155acfcfce1631ecf676b",
+      "response_sha256": "a5f2a686cebc14c09693431899d7e4ce56c15c752febbdba1156b30d33f1f387",
+      "original_m1_record_preserved": true,
+      "authority_role": "DISCOVERY_ONLY",
+      "first_observed_scope": "SAVED_LOCAL_OBSERVATION_NOT_GLOBAL_FIRST_SEEN"
+    },
+    "official_document": null,
+    "propositions": [],
+    "preview": null,
+    "title_zh": null,
+    "status": "NEWS_ONLY",
+    "durable_first_seen_status": "FIRST_SEEN_NOT_PROVEN"
+  },
+  {
+    "as_of": "2026-10-19T18:28:56.775123Z",
+    "scope": "SAVED_RECEIPT_AVAILABILITY_NOT_PRODUCTION_REPLAY",
+    "ledger_status": "UNAVAILABLE_NO_APPROVED_LEDGER",
+    "event_id": "canonical-event-v0-8482ee03a4d011c228d04e01838dee95ad59749ed3263fbb7213950029fd24f3",
+    "discovery": {
+      "item": {
+        "title": "CPI for all items increases 0.6% in September; gasoline rises",
+        "article_reference": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+        "reported_at": "2026-10-14T11:50:31.200000Z",
+        "reported_time_kind": "REPORTED_TIME",
+        "observed_at": "2026-10-18T13:55:43.260699Z",
+        "recorded_at": "2026-10-18T13:59:31.639939Z",
+        "news_source": {
+          "name": "BLS CPI",
+          "url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm"
+        },
+        "verification_status": "UNVERIFIED_NEWS"
+      },
+      "source_item_id": "cpi-2026_10_14__07_50_31",
+      "source_published_raw": "2026-10-14T07:50:31.2-04:00",
+      "retrieved_at": "2026-10-18T13:55:43.260699Z",
+      "recorded_at": "2026-10-18T13:59:31.639939Z",
+      "receipt_sha256": "3c8811ba344eaa6b649d7ecdc2a402e9b2824704eb9155acfcfce1631ecf676b",
+      "response_sha256": "a5f2a686cebc14c09693431899d7e4ce56c15c752febbdba1156b30d33f1f387",
+      "original_m1_record_preserved": true,
+      "authority_role": "DISCOVERY_ONLY",
+      "first_observed_scope": "SAVED_LOCAL_OBSERVATION_NOT_GLOBAL_FIRST_SEEN"
+    },
+    "official_document": {
+      "source_url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "authority_name": "U.S. Bureau of Labor Statistics",
+      "document_reference": "USDL-26-1574",
+      "release_date": "2026-10-14",
+      "publication_precision": "DATE_ONLY",
+      "published_at": null,
+      "scheduled_embargo_release_at": "2026-10-14T12:30:00Z",
+      "scheduled_embargo_role": "ANNOUNCED_EMBARGO_NOT_MEASURED_PUBLICATION",
+      "retrieved_at": "2026-10-19T18:28:56.773178Z",
+      "recorded_at": "2026-10-19T18:28:56.775123Z",
+      "first_observed_at_in_m2": "2026-10-19T18:28:56.773178Z",
+      "first_seen_scope": "THIS_M2_DOCUMENT_OBSERVATION_ONLY",
+      "response_sha256": "b9f981390c08f4a530d839495fce582124015b979bac0398bfcc35ffde0544e4",
+      "receipt_sha256": "7966f8994b8a899429d398e54b81573fedfc01547d8a5cb9802700f64001d18a"
+    },
+    "propositions": [],
+    "preview": null,
+    "title_zh": null,
+    "status": "OFFICIAL_DOCUMENT_ONLY_NOT_YET_REVIEWED",
+    "durable_first_seen_status": "FIRST_SEEN_NOT_PROVEN"
+  },
+  {
+    "as_of": "2026-10-19T18:31:02.902236Z",
+    "scope": "SAVED_RECEIPT_AVAILABILITY_NOT_PRODUCTION_REPLAY",
+    "ledger_status": "UNAVAILABLE_NO_APPROVED_LEDGER",
+    "event_id": "canonical-event-v0-8482ee03a4d011c228d04e01838dee95ad59749ed3263fbb7213950029fd24f3",
+    "discovery": {
+      "item": {
+        "title": "CPI for all items increases 0.6% in September; gasoline rises",
+        "article_reference": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+        "reported_at": "2026-10-14T11:50:31.200000Z",
+        "reported_time_kind": "REPORTED_TIME",
+        "observed_at": "2026-10-18T13:55:43.260699Z",
+        "recorded_at": "2026-10-18T13:59:31.639939Z",
+        "news_source": {
+          "name": "BLS CPI",
+          "url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm"
+        },
+        "verification_status": "UNVERIFIED_NEWS"
+      },
+      "source_item_id": "cpi-2026_10_14__07_50_31",
+      "source_published_raw": "2026-10-14T07:50:31.2-04:00",
+      "retrieved_at": "2026-10-18T13:55:43.260699Z",
+      "recorded_at": "2026-10-18T13:59:31.639939Z",
+      "receipt_sha256": "3c8811ba344eaa6b649d7ecdc2a402e9b2824704eb9155acfcfce1631ecf676b",
+      "response_sha256": "a5f2a686cebc14c09693431899d7e4ce56c15c752febbdba1156b30d33f1f387",
+      "original_m1_record_preserved": true,
+      "authority_role": "DISCOVERY_ONLY",
+      "first_observed_scope": "SAVED_LOCAL_OBSERVATION_NOT_GLOBAL_FIRST_SEEN"
+    },
+    "official_document": {
+      "source_url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+      "authority_name": "U.S. Bureau of Labor Statistics",
+      "document_reference": "USDL-26-1574",
+      "release_date": "2026-10-14",
+      "publication_precision": "DATE_ONLY",
+      "published_at": null,
+      "scheduled_embargo_release_at": "2026-10-14T12:30:00Z",
+      "scheduled_embargo_role": "ANNOUNCED_EMBARGO_NOT_MEASURED_PUBLICATION",
+      "retrieved_at": "2026-10-19T18:28:56.773178Z",
+      "recorded_at": "2026-10-19T18:28:56.775123Z",
+      "first_observed_at_in_m2": "2026-10-19T18:28:56.773178Z",
+      "first_seen_scope": "THIS_M2_DOCUMENT_OBSERVATION_ONLY",
+      "response_sha256": "b9f981390c08f4a530d839495fce582124015b979bac0398bfcc35ffde0544e4",
+      "receipt_sha256": "7966f8994b8a899429d398e54b81573fedfc01547d8a5cb9802700f64001d18a"
+    },
+    "propositions": [
+      {
+        "id": "headline_month",
+        "statement_zh": "美國9月整體 CPI-U 經季節調整月增0.6%。",
+        "support": "DIRECTLY_SUPPORTED",
+        "supporting_excerpt_en": "The Consumer Price Index for All Urban Consumers (CPI-U) increased 0.6 percent on a seasonally adjusted basis in September after rising 0.4 percent in August, the U.S. Bureau of Labor Statistics reported today.",
+        "document_reference": "USDL-26-1574",
+        "source_url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+        "response_sha256": "b9f981390c08f4a530d839495fce582124015b979bac0398bfcc35ffde0544e4",
+        "available_at": "2026-10-19T18:31:02.902236Z"
+      },
+      {
+        "id": "headline_year",
+        "statement_zh": "截至9月的12個月，整體 CPI-U 未經季節調整年增3.7%。",
+        "support": "DIRECTLY_SUPPORTED",
+        "supporting_excerpt_en": "Over the last 12 months, the all items index increased 3.7 percent before seasonal adjustment.",
+        "document_reference": "USDL-26-1574",
+        "source_url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+        "response_sha256": "b9f981390c08f4a530d839495fce582124015b979bac0398bfcc35ffde0544e4",
+        "available_at": "2026-10-19T18:31:02.902236Z"
+      },
+      {
+        "id": "core_month",
+        "statement_zh": "扣除食品與能源的 CPI 月增0.3%（季調），與8月相同。",
+        "support": "DIRECTLY_SUPPORTED",
+        "supporting_excerpt_en": "The index for all items less food and energy rose 0.3 percent in September, as it did in August.",
+        "document_reference": "USDL-26-1574",
+        "source_url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+        "response_sha256": "b9f981390c08f4a530d839495fce582124015b979bac0398bfcc35ffde0544e4",
+        "available_at": "2026-10-19T18:31:02.902236Z"
+      },
+      {
+        "id": "gasoline",
+        "statement_zh": "9月汽油指數月增9.1%（季調），占整體 CPI 當月增幅一半以上。",
+        "support": "DIRECTLY_SUPPORTED",
+        "supporting_excerpt_en": "The index for gasoline rose 9.1 percent in September, accounting for over half of the monthly all items increase.",
+        "document_reference": "USDL-26-1574",
+        "source_url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+        "response_sha256": "b9f981390c08f4a530d839495fce582124015b979bac0398bfcc35ffde0544e4",
+        "available_at": "2026-10-19T18:31:02.902236Z"
+      }
+    ],
+    "preview": {
+      "status": "PREVIEW",
+      "available_at": "2026-10-19T18:31:02.902236Z",
+      "translation_created_at": "2026-10-19T18:31:02.902236Z",
+      "translation_source": "Macro Trading OS / Codex curated Traditional Chinese; unofficial presentation only",
+      "facts_basis": [
+        "headline_month",
+        "headline_year",
+        "core_month",
+        "gasoline"
+      ],
+      "hypotheses_zh": [
+        "若能源成本上升持續，可能經運輸及企業成本影響其他物價；本次資料不足以證明後續傳導。",
+        "若核心物價持續具有黏性，可能影響政策評估；單月CPI不能決定Fed下一次利率行動。",
+        "整體與核心的差異有助區分能源衝擊與廣泛物價壓力，但不能直接預測美元、債券或股票方向。"
+      ],
+      "unknowns_zh": [
+        "未取得市場共識，不能判斷是否超出預期。",
+        "未取得資產價格收據，市場反應為 NOT_MEASURED。",
+        "未取得本次對應Fed政策命題，利率行動為 UNKNOWN。",
+        "沒有核准的持久歷史／Frozen收據，不提供正式PIT回放。",
+        "來源Feed與文件禁發時間互相衝突；偵測延遲 UNKNOWN。"
+      ],
+      "next_evidence_zh": [
+        "核對後續PCE、薪資與服務價格分項是否支持更廣泛的通膨持續性。",
+        "另行取得Fed官方聲明並核對具體政策命題，不能由CPI直接推論政策。",
+        "若未來獲授權，取得有來源及時間的市場預期與價格觀測；不回填成當時已知。"
+      ],
+      "research_gate": "RESEARCH_ONLY_NO_EXECUTION_OR_RISK_VALIDATION"
+    },
+    "title_zh": "美國9月CPI月增0.6%：汽油推升整體通膨，核心月增0.3%",
+    "status": "PREVIEW",
+    "durable_first_seen_status": "FIRST_SEEN_NOT_PROVEN"
+  }
+]
