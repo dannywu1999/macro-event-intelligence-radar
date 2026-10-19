@@ -8,6 +8,14 @@ ROOT=Path(__file__).resolve().parent
 OFF=('RADAR_LIVE_ECB','RADAR_LIVE_EIA','RADAR_LIVE_GUARDIAN','RADAR_LIVE_MARKET_WATCH','RADAR_LIVE_NEWS','RADAR_LIVE_UN_NEWS','RADAR_NEWS_CAPTURE','RADAR_PERSIST_INTELLIGENCE')
 ASSETS={'/ui/'+n for n in ('radar_product_workbench.js','radar_product_workbench.css','radar_headline_presentation.js')}
 
+# Ignore only named tracking fields; functional parameters remain strictly validated.
+UTM_PARAMETERS=frozenset(('utm_source','utm_medium','utm_campaign','utm_term','utm_content','utm_id','utm_source_platform','utm_creative_format','utm_marketing_tactic'))
+def preview_query(query,allowed=()):
+ q=parse_qs(query,keep_blank_values=True,max_num_fields=len(UTM_PARAMETERS)+2)
+ q={k:v for k,v in q.items() if k not in UTM_PARAMETERS}
+ if set(q)-set(allowed) or any(len(v)!=1 for v in q.values()):raise ValueError()
+ return q
+
 LLM_INDEX='''# Macro Trading OS — public saved snapshot
 
 Public, read-only macro-event research preview. This is NOT a live news feed or a trading signal.
@@ -197,9 +205,11 @@ class Handler(BaseHTTPRequestHandler):
    if u.path=='/healthz' and not u.query and self.command in ('GET','HEAD'):self.reply(200,{'status':'ok'});return
    if not self.authenticated():return
    if self.command not in ('GET','HEAD'):self.reply(405,{'error':'READ_ONLY_PREVIEW'});return
-   if u.path=='/llms.txt' and not u.query:self.reply(200,LLM_INDEX.encode('utf-8'),'text/plain; charset=utf-8')
-   elif u.path=='/llm/events.md' and not u.query:self.reply(200,llm_markdown(llm_snapshot(self.server.views)),'text/markdown; charset=utf-8')
-   elif u.path=='/llm/events.json' and not u.query:self.reply(200,llm_snapshot(self.server.views))
+   if u.path in ('/llms.txt','/llm/events.md','/llm/events.json'):
+    preview_query(u.query)
+    if u.path=='/llms.txt':self.reply(200,LLM_INDEX.encode('utf-8'),'text/plain; charset=utf-8')
+    elif u.path=='/llm/events.md':self.reply(200,llm_markdown(llm_snapshot(self.server.views)),'text/markdown; charset=utf-8')
+    else:self.reply(200,llm_snapshot(self.server.views))
    elif u.path in ('/','/feed'):
     self.options(u.query);self.reply(200,(ROOT/'ui/radar_public_showcase_v1.html').read_bytes(),'text/html; charset=utf-8')
    elif u.path in ASSETS and not u.query:self.reply(200,(ROOT/u.path.lstrip('/')).read_bytes(),'text/css; charset=utf-8' if u.path.endswith('.css') else 'text/javascript; charset=utf-8')
@@ -213,8 +223,7 @@ class Handler(BaseHTTPRequestHandler):
   except ValueError:self.reply(400,{'error':'INVALID_PREVIEW_REQUEST'})
   except (OSError,KeyError):self.reply(503,{'error':'PREVIEW_UNAVAILABLE','read_only':True})
  def options(self,query):
-  q=parse_qs(query,keep_blank_values=True,max_num_fields=2)
-  if set(q)-{'profile','window'} or any(len(v)!=1 for v in q.values()):raise ValueError()
+  q=preview_query(query,('profile','window'))
   profile=q.get('profile',['public'])[0];window=q.get('window',['168'])[0]
   if profile not in ('public','baseline') or window not in ('48','168'):raise ValueError()
   return profile,window
