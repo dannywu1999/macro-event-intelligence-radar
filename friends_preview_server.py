@@ -9,7 +9,7 @@ OFF=('RADAR_LIVE_ECB','RADAR_LIVE_EIA','RADAR_LIVE_GUARDIAN','RADAR_LIVE_MARKET_
 ASSETS={'/ui/'+n for n in ('radar_product_workbench.js','radar_product_workbench.css','radar_headline_presentation.js')}
 
 # Only fixed, reviewed categories may reach startup logs. Never print exception text.
-STARTUP_CODES=frozenset(('CONFIG_REQUIRED_OFF','CONFIG_UNEXPECTED_RUNTIME','CONFIG_CREDENTIALS','CONFIG_BIND','CONFIG_LOOPBACK','CONFIG_INVALID','MANIFEST_READ','MANIFEST_INVALID','PACKAGE_INVENTORY','PACKAGE_HASH','PUBLIC_DATA_INVALID','PACKAGE_READ','READONLY_GUARD_FAILED','BIND_FAILED'))
+STARTUP_CODES=frozenset(('CONFIG_REQUIRED_OFF','CONFIG_UNEXPECTED_RUNTIME','CONFIG_CREDENTIALS','USERNAME_INVALID','PASSWORD_MISSING','PASSWORD_LENGTH_INVALID','PASSWORD_CONTROL_CHARACTER','CONFIG_BIND','CONFIG_LOOPBACK','CONFIG_INVALID','MANIFEST_READ','MANIFEST_INVALID','PACKAGE_INVENTORY','PACKAGE_HASH','PUBLIC_DATA_INVALID','PACKAGE_READ','READONLY_GUARD_FAILED','BIND_FAILED'))
 class StartupRejected(ValueError):
  def __init__(self,code):self.code=code if code in STARTUP_CODES else 'CONFIG_INVALID';super().__init__(self.code)
 def startup_rejected(code):
@@ -20,7 +20,10 @@ def configuration():
  # Legacy optional aliases must not create even an apparent live capability.
  if any(v.strip() not in ('','0') for k,v in os.environ.items() if (k.startswith('RADAR_LIVE_') and k not in OFF) or k.startswith(('GLOBAL_EVENT_RADAR_','CLOUDFLARE_','BROKER_','PAPER_TRADING','LIVE_TRADING'))):raise StartupRejected('CONFIG_UNEXPECTED_RUNTIME')
  user=os.environ.get('FRIENDS_PREVIEW_USERNAME','');password=os.environ.get('FRIENDS_PREVIEW_PASSWORD','')
- if not re.fullmatch(r'[A-Za-z0-9_.-]{3,64}',user) or not 24<=len(password)<=256 or ':' in user or any(ord(c)<32 for c in password):raise StartupRejected('CONFIG_CREDENTIALS')
+ if not re.fullmatch(r'[A-Za-z0-9_.-]{3,64}',user) or ':' in user:raise StartupRejected('USERNAME_INVALID')
+ if not password:raise StartupRejected('PASSWORD_MISSING')
+ if not 24<=len(password)<=256:raise StartupRejected('PASSWORD_LENGTH_INVALID')
+ if any(ord(c)<32 for c in password):raise StartupRejected('PASSWORD_CONTROL_CHARACTER')
  host=os.environ.get('HOST','0.0.0.0')
  try:port=int(os.environ.get('PORT','8765'))
  except (ValueError,TypeError):raise StartupRejected('CONFIG_BIND') from None
