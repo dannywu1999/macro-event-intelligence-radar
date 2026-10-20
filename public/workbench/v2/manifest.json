@@ -1,0 +1,32 @@
+{
+  "schema": "M35_PRESENTATION_MANIFEST_V2",
+  "self_excluded": true,
+  "scope": "VERSIONED_PRESENTATION_OF_PINNED_SAVED_PUBLIC_DATA",
+  "source_inputs": {
+    "source_snapshot.json": "05e1f41cab2624381ee0d5535a0fc0459787e2f4ba364bcf36aec1e32bcceed5",
+    "event_case.json": "6ed1c5ff3de5d8617dea9750d338e5c3ca272a742efcb720e53e4f1a24dae1ee"
+  },
+  "archives_sha256": "58e56e373122f2050f594078e9ebb93f1ee568e23e6d44c03684e63cbbf0367d",
+  "files": {
+    "cpi-20261014/index.html": {
+      "sha256": "3327813f5d7b523572deecf3863b22ba1b90350101c4ae7b1c73f3118138a7ae",
+      "bytes": 2546
+    },
+    "index.html": {
+      "sha256": "8df90c7714e98a392e2c292a3c4b609543443e2b85df52f6caffd585fbfab317",
+      "bytes": 2540
+    },
+    "v2/data.json": {
+      "sha256": "c65ff2ffb618dacb5c594a632992fe5277caf113589c33d28a60eafc5cf4ec1c",
+      "bytes": 50766
+    },
+    "v2/workbench.css": {
+      "sha256": "cad2524ef9f3739d94edba8109b93104e0655ef2a607d2e0a4f38e6ac1ba3748",
+      "bytes": 11112
+    },
+    "v2/workbench.js": {
+      "sha256": "c57618aa84e2aaf4ef4ef046e0c2e87d7d8aaa6c25710c980272566caad37a06",
+      "bytes": 21137
+    }
+  }
+}

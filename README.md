@@ -1,4 +1,11 @@
-# Macro Radar — M1 archive + M2 event research preview
+# Macro Radar — M3.5 Research Workbench V2 + preserved M1/M2
+
+New entry: `/workbench/`; CPI workbench: `/workbench/cpi-20261014/`.
+Six allowlisted new presentation assets are built from the unchanged, pinned
+M1/M2 inputs. They add quick statistics, proposition evidence, a visual timeline,
+source/topic/evidence filters, and actual Markdown/JSON/citation clipboard exports.
+`workbench/v2/manifest.json` versions this presentation separately. No newly
+observed news, historical revisions, production PIT or trading feature is added.
 
 M2 case: `/research/m2-cpi-20261014/` (Traditional Chinese HTML),
 `case.txt`, `case.json`, `asof-examples.json`, and its own SHA256 manifest.
@@ -27,9 +34,10 @@ python3 -B -m unittest discover -s tests -v
 Render Static Site: build `python3 -B build_gateway.py`, publish `public`,
 Auto-Deploy OFF, no credentials, no disk/database or paid compute instance.
 Set `SKIP_INSTALL_DEPS=true`; this build uses the Python standard library only.
-Do not serve the repository root. Only the original 11 files plus the six
-explicitly allowlisted M2 assets under `public/research/m2-cpi-20261014/`
-are public. No raw HTML receipts, one-shot runner, source logs or local paths
+Do not serve the repository root. Only **23** explicitly allowlisted public
+assets are published: original M1 eleven + M2 six + workbench six. All original
+17 M1/M2 files remain byte-identical, pinned by `m35_archive_preservation.json`.
+No raw HTML receipts, one-shot runner, source logs or local paths
 are included in the publish directory. No runtime collector or writer exists.
 
 `contracts_v0.py` contains source-exact pure existing canonical/event and
