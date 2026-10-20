@@ -1,0 +1,8 @@
+{
+  "version": "M3.1_SOURCE_RECOVERY_V1",
+  "experiment_id": "M31-20261020-ECONOMIC-RECOVERY",
+  "interval_seconds": 1800,
+  "max_requests": 80,
+  "max_bytes": 20000000,
+  "sources": ["bls_api", "bea_releases"]
+}
