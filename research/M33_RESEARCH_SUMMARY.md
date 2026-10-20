@@ -1,0 +1,11 @@
+# M3.3 rights-cleared discovery — PARTIAL
+
+The public/commercial rights gate is demonstrated for three context records: two 360info energy-policy analyses with named authors and article-level CC BY 4.0 proof, plus one original Federal Reserve release. Full required attribution follows every record and handoff. No article body, image, restricted wire record, private receipt, local path or runtime log is published. No private feed is used as a discovery trigger.
+
+This does **not** recover timely independent macro news. Five candidate feeds were directly tested successfully. VOA Economy's newest record is March 2025 and mixes wire content; staff bylines alone do not prove exclusive ownership. Global Voices yielded no selected macro news. Two seven-day 360info analyses are context, not new policy/supply decisions, and were already present in M3.2 raw evidence. The Fed release was already known in M3. Official origin remains separate from independent news. Current public news counts: 48h=0, 7d=0; analysis 7d=2; official context 7d=1.
+
+Actual selected-source repeat observation completed: True. Per-source retrieval intervals: {"360info": 1828.550708, "fed_monetary": 1828.524368} seconds. Duplicates/updates/new-to-study and FAILED are in the local handoff; they are not new-to-world detection. Source GETs=18; known read bytes=2092197; no uncertain ACK. One ECB terms redirect was refused, not followed. Documentation web-tool internal traffic is separately unmeasured.
+
+22 focused offline tests passed. A separate reviewer confirmed the actual public projection/handoff and engineering rights gate after bounded repairs. Core milestone remains PARTIAL; detection latency, global first-seen and 24/7 operation are unproven. No production capture, service, deploy, trading or protected authority change occurred. Old M3/M3.1/M3.2 evidence remains unchanged.
+
+The source contract, manual release-day plan, permission-request draft and public snapshot are research artifacts. They do not authorize deployment or future polling. Next: obtain suitable timely public/commercial metadata permission, or separately approve an official-origin BEA release-window test. No publisher has been contacted.

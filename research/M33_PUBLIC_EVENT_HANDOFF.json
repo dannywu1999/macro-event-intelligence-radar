@@ -1,0 +1,117 @@
+{
+  "status": "PARTIAL_NO_RECENT_NEWS_REPORT_HANDOFF",
+  "evaluation_as_of": "2026-10-20T08:26:50.993520+00:00",
+  "packets": [
+    {
+      "article_identity": "article-url-v47-3c6f94fa28403cd2ed8b72f75e421e9b5e25deb5d4b0f06462f899de9630e9e0",
+      "kind": "ANALYSIS_CONTEXT",
+      "original_url": "https://360info.org/how-the-fossil-fuel-industry-captured-australia-and-maintains-its-political-dominance/",
+      "headline_original": "How the fossil fuel industry ‘captured’ Australia and maintains its political dominance",
+      "publisher": "360info",
+      "author_attribution": "Christopher Wright University of Sydney Business School",
+      "rights": {
+        "classification": "PUBLIC_COMMERCIAL_ELIGIBLE",
+        "scope": "EXACT_ORIGINAL_HEADLINE_BYLINE_TIME_LINK_ONLY",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
+        "terms_url": "https://360info.org/how-to-use-our-content/",
+        "terms_body_sha256": "fa188d50d666215afd1dfd6f17481825a75041f012ae61bb7bbd68f71acfce2d",
+        "item_body_sha256": "c307732b9a55452acef7fa49c2dbf7500cb89209c6e972016bc84b6fbc3e67b5",
+        "review_manifest_sha256": "18b0ae315656e6f57d0d71d08efe10aab7c4f41da52e5009ee0d65801ad51429",
+        "changes": "No headline translation or rewriting. Formatting/metadata selection only; separate classification is our research annotation.",
+        "images_and_body_included": false,
+        "periodic_access_permission": "NOT_EXPRESSLY_STATED_PRODUCTION_NOT_AUTHORIZED"
+      },
+      "as_of": "2026-10-20T08:26:50.993520+00:00",
+      "first_observed_in_M33": "2026-10-20T07:54:33.893709Z",
+      "source_reported_published_at": "2026-10-15T11:51:22Z",
+      "main_claim_status": "ANALYSIS_NOT_OFFICIALLY_VERIFIED",
+      "official_proposition": null,
+      "official_verification_pending": true,
+      "macroview": {
+        "status": "RESEARCH_PREVIEW_ONLY",
+        "not_frozen": true,
+        "uncertainty": "Analysis is not a new policy or supply decision; missing official propositions stay pending.",
+        "next_evidence": "Original official energy-policy decisions or relevant dated statistical releases.",
+        "polymarket": "UNAVAILABLE",
+        "trade_ready": false
+      }
+    },
+    {
+      "article_identity": "article-url-v47-c772965445106175d6430dba1c2685c742db97c1e9efd22125d0bfb40bd17e3f",
+      "kind": "ANALYSIS_CONTEXT",
+      "original_url": "https://360info.org/how-fossil-fuel-lobby-is-undermining-democracy/",
+      "headline_original": "How fossil fuel lobby is undermining democracy",
+      "publisher": "360info",
+      "author_attribution": "Christian Downie Australian National University",
+      "rights": {
+        "classification": "PUBLIC_COMMERCIAL_ELIGIBLE",
+        "scope": "EXACT_ORIGINAL_HEADLINE_BYLINE_TIME_LINK_ONLY",
+        "license_url": "https://creativecommons.org/licenses/by/4.0/",
+        "terms_url": "https://360info.org/how-to-use-our-content/",
+        "terms_body_sha256": "fa188d50d666215afd1dfd6f17481825a75041f012ae61bb7bbd68f71acfce2d",
+        "item_body_sha256": "246a1658f75acd7486187466fdcb92e52ae30ed45d70777b3dfc97ef018840a8",
+        "review_manifest_sha256": "18b0ae315656e6f57d0d71d08efe10aab7c4f41da52e5009ee0d65801ad51429",
+        "changes": "No headline translation or rewriting. Formatting/metadata selection only; separate classification is our research annotation.",
+        "images_and_body_included": false,
+        "periodic_access_permission": "NOT_EXPRESSLY_STATED_PRODUCTION_NOT_AUTHORIZED"
+      },
+      "as_of": "2026-10-20T08:26:50.993520+00:00",
+      "first_observed_in_M33": "2026-10-20T07:54:33.893709Z",
+      "source_reported_published_at": "2026-10-15T11:25:45Z",
+      "main_claim_status": "ANALYSIS_NOT_OFFICIALLY_VERIFIED",
+      "official_proposition": null,
+      "official_verification_pending": true,
+      "macroview": {
+        "status": "RESEARCH_PREVIEW_ONLY",
+        "not_frozen": true,
+        "uncertainty": "Analysis is not a new policy or supply decision; missing official propositions stay pending.",
+        "next_evidence": "Original official energy-policy decisions or relevant dated statistical releases.",
+        "polymarket": "UNAVAILABLE",
+        "trade_ready": false
+      }
+    },
+    {
+      "article_identity": "article-url-v47-ca688a27006cdc18bac09fd5edb687c617913c993eb5627f3893a13939502053",
+      "kind": "OFFICIAL_ANNOUNCEMENT",
+      "original_url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261013a.htm",
+      "headline_original": "Minutes of the Board's discount rate meetings on August 17, September 9, and September 16, 2026",
+      "publisher": "Federal Reserve Board",
+      "author_attribution": "Federal Reserve Board",
+      "rights": {
+        "classification": "PUBLIC_COMMERCIAL_ELIGIBLE",
+        "scope": "EXACT_ORIGINAL_HEADLINE_BYLINE_TIME_LINK_ONLY",
+        "license_url": null,
+        "terms_url": "https://www.federalreserve.gov/disclaimer.htm",
+        "terms_body_sha256": "5db9f15dc73602c92ad17090725ab3e138e2b01b911b1425f95966cf15297ccf",
+        "item_body_sha256": "930c236957425ff1bc69aafba15bb4df1f1de8f8c53acc97fbebf0684bef0a53",
+        "review_manifest_sha256": "18b0ae315656e6f57d0d71d08efe10aab7c4f41da52e5009ee0d65801ad51429",
+        "changes": "No headline translation or rewriting. Formatting/metadata selection only; separate classification is our research annotation.",
+        "images_and_body_included": false,
+        "periodic_access_permission": "NOT_EXPRESSLY_STATED_PRODUCTION_NOT_AUTHORIZED"
+      },
+      "as_of": "2026-10-20T08:26:50.993520+00:00",
+      "first_observed_in_M33": "2026-10-20T07:54:34.331165Z",
+      "source_reported_published_at": "2026-10-13T18:00:00Z",
+      "main_claim_status": "SCOPED_PUBLICATION_FACT_ONLY",
+      "official_proposition": {
+        "status": "VERIFIED_SCOPED_OFFICIAL_FACT",
+        "proposition": "The Board published minutes covering its discount-rate meetings on August 17, September 9 and September 16, 2026.",
+        "source_url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261013a.htm",
+        "body_sha256": "930c236957425ff1bc69aafba15bb4df1f1de8f8c53acc97fbebf0684bef0a53",
+        "retrieved_at": "2026-10-20T07:57:17.914536Z",
+        "recorded_at": "2026-10-20T07:57:17.918692Z",
+        "scope": "PUBLICATION_AND_MEETING_COVERAGE_ONLY_NOT_FOMC_RATE_DECISION",
+        "not_a_new_m33_discovery": true
+      },
+      "official_verification_pending": false,
+      "macroview": {
+        "status": "RESEARCH_PREVIEW_ONLY",
+        "not_frozen": true,
+        "uncertainty": "Analysis is not a new policy or supply decision; missing official propositions stay pending.",
+        "next_evidence": "Original official energy-policy decisions or relevant dated statistical releases.",
+        "polymarket": "UNAVAILABLE",
+        "trade_ready": false
+      }
+    }
+  ]
+}
