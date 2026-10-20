@@ -1,0 +1,10 @@
+EIA Today in Energy: U.S. small-scale solar generation has quadrupled in the last decade
+https://www.eia.gov/todayinenergy/detail.php?id=68324
+Source-reported publication UTC: 2026-10-16T14:00:00Z
+Saved local observation UTC: 2026-10-18T13:53:49.442089Z
+Recorded UTC: 2026-10-18T13:59:31.639939Z
+Research snapshot as-of UTC: 2026-10-19T18:31:02.902236Z
+Candidate: canonical-event-v0-f44049e1299057df0b75819c1804051e69c5b094a87f2914c3dacb886d21cfa0
+UNVERIFIED_NEWS; NO_OFFICIAL_EVIDENCE_LINKED (proposition-scoped only)
+FIRST_SEEN_NOT_PROVEN; no approved PIT/Frozen; live_feed=false; trading_signal=false
+EIA Today in Energy; Author: UNKNOWN; https://www.eia.gov/about/copyrights_reuse.php; UNKNOWN

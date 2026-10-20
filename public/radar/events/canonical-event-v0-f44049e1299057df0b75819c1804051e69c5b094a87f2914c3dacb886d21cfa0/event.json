@@ -1,0 +1,119 @@
+{
+  "schema": "MACRO_RADAR_GLOBAL_EVENT_PROJECTION_V1",
+  "source_inputs": {
+    "source_snapshot.json": "05e1f41cab2624381ee0d5535a0fc0459787e2f4ba364bcf36aec1e32bcceed5",
+    "event_case.json": "6ed1c5ff3de5d8617dea9750d338e5c3ca272a742efcb720e53e4f1a24dae1ee"
+  },
+  "event": {
+    "candidate_id": "canonical-event-v0-f44049e1299057df0b75819c1804051e69c5b094a87f2914c3dacb886d21cfa0",
+    "candidate_identity_type": "CONSERVATIVE_SINGLE_ARTICLE_SET_NOT_PROVEN_DISTINCT_WORLD_EVENT",
+    "original_title": "U.S. small-scale solar generation has quadrupled in the last decade",
+    "translated_title": "美國小規模太陽能發電量在過去十年增至四倍",
+    "translation_status": "CURATED_CANDIDATE",
+    "translation_presentation_only": true,
+    "category": "energy",
+    "original_event_family": "ENERGY",
+    "article_references": [
+      "https://www.eia.gov/todayinenergy/detail.php?id=68324"
+    ],
+    "articles": [
+      {
+        "headline_zh": "美國小規模太陽能發電量在過去十年增至四倍",
+        "headline_original": "U.S. small-scale solar generation has quadrupled in the last decade",
+        "source": "EIA Today in Energy",
+        "source_url": "https://www.eia.gov/todayinenergy/detail.php?id=68324",
+        "source_reported_at": "2026-10-16T14:00:00Z",
+        "observed_at": "2026-10-18T13:53:49.442089Z",
+        "recorded_at": "2026-10-18T13:59:31.639939Z",
+        "verification_status": "UNVERIFIED_NEWS",
+        "event_family": "ENERGY",
+        "translation_status": "CURATED_CANDIDATE",
+        "rights_id": "rights-9bc7001de8811625",
+        "source_id": "eia",
+        "author": null,
+        "translation_presentation_only": true,
+        "official_evidence_status": "NO_OFFICIAL_EVIDENCE_LINKED"
+      }
+    ],
+    "source_names": [
+      "EIA Today in Energy"
+    ],
+    "source_urls": [
+      "https://www.eia.gov/todayinenergy/detail.php?id=68324"
+    ],
+    "source_published_at": "2026-10-16T14:00:00Z",
+    "publication_precision": "SOURCE_REPORTED_TIMESTAMP_NOT_INDEPENDENTLY_PROVEN",
+    "first_observed_scope": "SAVED_LOCAL_OBSERVATION_NOT_GLOBAL_FIRST_SEEN",
+    "observed_at": "2026-10-18T13:53:49.442089Z",
+    "recorded_at": "2026-10-18T13:59:31.639939Z",
+    "article_verification_status": "UNVERIFIED_NEWS",
+    "original_official_evidence_status": "NO_OFFICIAL_EVIDENCE_LINKED",
+    "official_proposition_status": "NO_OFFICIAL_EVIDENCE_LINKED",
+    "supported_proposition_count": 0,
+    "rights_status": "PUBLIC_ELIGIBLE_METADATA_ONLY",
+    "rights": [
+      {
+        "rights_id": "rights-9bc7001de8811625",
+        "source_id": "eia",
+        "source": "EIA Today in Energy",
+        "source_url": "https://www.eia.gov/todayinenergy/detail.php?id=68324",
+        "original_headline": "U.S. small-scale solar generation has quadrupled in the last decade",
+        "author": "",
+        "policy_status": "PUBLIC_ELIGIBLE",
+        "policy_url": "https://www.eia.gov/about/copyrights_reuse.php",
+        "license_url": null,
+        "attribution_requirements": "EIA; original publication date and link. No third-party material, logos or images.",
+        "translation_responsibility": "Macro Trading OS / Codex curated presentation, unofficial; original headline and source retained; translated headlines are adaptations.",
+        "scope": "TITLE_LINK_ATTRIBUTION_TIMESTAMPS_ONLY",
+        "excluded": [
+          "full_article",
+          "description",
+          "images",
+          "logos",
+          "third_party_content"
+        ]
+      }
+    ],
+    "research_status": "METADATA_ONLY_PENDING",
+    "macroview_status": "UNAVAILABLE",
+    "macroview": null,
+    "live_feed": false,
+    "trading_signal": false,
+    "snapshot_as_of": "2026-10-19T18:31:02.902236Z",
+    "event_occurred_at": null,
+    "importance_assessment": null,
+    "market_expectations": {
+      "status": "UNAVAILABLE",
+      "value": null
+    },
+    "market_reaction": {
+      "status": "NOT_MEASURED",
+      "value": null
+    },
+    "detection_latency": "UNKNOWN",
+    "causality": "NOT_ESTABLISHED",
+    "frozen_macroview_status": "UNAVAILABLE_NO_APPROVED_LEDGER",
+    "evidence_links": [],
+    "propositions": [],
+    "metrics": [],
+    "time_conflict": null,
+    "official_document": null,
+    "timeline": [
+      {
+        "role": "SOURCE_REPORTED_PUBLICATION",
+        "value": "2026-10-16T14:00:00Z",
+        "meaning_zh": "來源自報發布；不是本系統取得時間。"
+      },
+      {
+        "role": "SAVED_LOCAL_OBSERVATION",
+        "value": "2026-10-18T13:53:49.442089Z",
+        "meaning_zh": "保存的本機實際取得；不是全球首次觀測。"
+      },
+      {
+        "role": "SAVED_METADATA_RECORDING",
+        "value": "2026-10-18T13:59:31.639939Z",
+        "meaning_zh": "保存 metadata 記錄；不等於正式 PIT ledger。"
+      }
+    ]
+  }
+}

@@ -1,6 +1,11 @@
-# Macro Radar — M3.5 Research Workbench V2 + preserved M1/M2
+# Macro Radar — M3.6 Global Event Radar + preserved M1/M2/M3.5
 
-New entry: `/workbench/`; CPI workbench: `/workbench/cpi-20261014/`.
+Primary entry: `/radar/`; seven conservative saved article-set candidates with
+static readable HTML, universal Energy/Trade/CPI detail pages and matching
+`/radar/events.json` / `/radar/events.txt`. No new source acquisition or global
+coverage claim. See `M36_IMPLEMENTATION.md` for the presentation contract.
+
+Preserved M3.5 entry: `/workbench/`; CPI workbench: `/workbench/cpi-20261014/`.
 Six allowlisted new presentation assets are built from the unchanged, pinned
 M1/M2 inputs. They add quick statistics, proposition evidence, a visual timeline,
 source/topic/evidence filters, and actual Markdown/JSON/citation clipboard exports.
@@ -34,9 +39,10 @@ python3 -B -m unittest discover -s tests -v
 Render Static Site: build `python3 -B build_gateway.py`, publish `public`,
 Auto-Deploy OFF, no credentials, no disk/database or paid compute instance.
 Set `SKIP_INSTALL_DEPS=true`; this build uses the Python standard library only.
-Do not serve the repository root. Only **23** explicitly allowlisted public
-assets are published: original M1 eleven + M2 six + workbench six. All original
-17 M1/M2 files remain byte-identical, pinned by `m35_archive_preservation.json`.
+Do not serve the repository root. Only **57** explicitly allowlisted public
+assets are published: original M1 eleven + M2 six + workbench six + Radar34.
+All original23 M1/M2/M3.5 files remain byte-identical, pinned by
+`m36_archive_preservation.json`; the earlier17-file pin is also retained.
 No raw HTML receipts, one-shot runner, source logs or local paths
 are included in the publish directory. No runtime collector or writer exists.
 

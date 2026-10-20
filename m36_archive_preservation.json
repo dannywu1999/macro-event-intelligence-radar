@@ -1,0 +1,28 @@
+{
+  "parent": "23ef8ad46b2d19641701e35fc4d0850da6e00b3b",
+  "files": {
+    "events.json": "515958dca97c46f1366bb5b93249a4f67348e9c7ee6355171385f6edb12126ff",
+    "events.md": "891281e6df2fa1d8b4b58fc1d7ed5b88e4ecf535460ce953bf803768aaf2ce0f",
+    "events.txt": "891281e6df2fa1d8b4b58fc1d7ed5b88e4ecf535460ce953bf803768aaf2ce0f",
+    "index.html": "3b915d641df59aaa0f85c4c33ab35cfcb5415d2f7170066b90e65460cbabab68",
+    "llms.txt": "03109beb92c01c035d45ce53069e882a13b0b5cc5a2f369c8f8c8dfb34fe1d43",
+    "manifest.json": "95355c062e61763f2fcc6ef1a5f87c92e7c033d65b7a6b6c9f7e5edbd3c5fac0",
+    "review-guide.md": "537e5f8c431d04fd19da4d86e3548e154900d3452eb6098f416ee14afacb1d2e",
+    "review-prompt.txt": "f5d9f0903c109beb534ae7ebf2464b7c50922a04ac1fdeb42d0c1aff30fe2735",
+    "robots.txt": "16ceb5ee3e0dc13aa9adf31a3ebbe45a1d965b8c2b9f72eaf84e5911e140ed95",
+    "snapshot-metadata.json": "12275924e1e614866ccb44c9b534d11db8a96fe3ea775428e8b8b4273378e1f7",
+    "source-rights.json": "a9ae5c385d811a2e97c623e8d2a37f42c287dab30c8c1d859d49d19513201a80",
+    "workbench/index.html": "8df90c7714e98a392e2c292a3c4b609543443e2b85df52f6caffd585fbfab317",
+    "workbench/cpi-20261014/index.html": "3327813f5d7b523572deecf3863b22ba1b90350101c4ae7b1c73f3118138a7ae",
+    "workbench/v2/data.json": "c65ff2ffb618dacb5c594a632992fe5277caf113589c33d28a60eafc5cf4ec1c",
+    "workbench/v2/manifest.json": "6c5700e58548b10abb3da91fde36c76c63fd657c6c2f35a2a853ee8352a067df",
+    "workbench/v2/workbench.css": "cad2524ef9f3739d94edba8109b93104e0655ef2a607d2e0a4f38e6ac1ba3748",
+    "workbench/v2/workbench.js": "c57618aa84e2aaf4ef4ef046e0c2e87d7d8aaa6c25710c980272566caad37a06",
+    "research/m2-cpi-20261014/asof-examples.json": "0cc99a812a661337e078b4c6275e8ff2dc2af6bd5aefa809025d103dc636b132",
+    "research/m2-cpi-20261014/case.json": "4b0e44d714b2ebf9cd7a4fa6c18a46d450fe6db071fd4080cf887c44934e7129",
+    "research/m2-cpi-20261014/case.md": "ce69ae14ff1332ca11b1e24c50f729673ec16f3c0aaafc095d2bff76870406c9",
+    "research/m2-cpi-20261014/case.txt": "ce69ae14ff1332ca11b1e24c50f729673ec16f3c0aaafc095d2bff76870406c9",
+    "research/m2-cpi-20261014/index.html": "8c3496e617ba82ee5d3e1f85a0dea82646951f7fffe1729f5d926b27cc131f0d",
+    "research/m2-cpi-20261014/manifest.json": "933ca051a724f741347dc0cadc79a9a395e42b2fcf081a288d36ad64a0ec7b86"
+  }
+}

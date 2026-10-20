@@ -1,0 +1,10 @@
+EIA Today in Energy: PJM, ERCOT, and SWPP all set peak load records this summer
+https://www.eia.gov/todayinenergy/detail.php?id=68305
+Source-reported publication UTC: 2026-10-15T14:00:00Z
+Saved local observation UTC: 2026-10-18T13:53:49.442089Z
+Recorded UTC: 2026-10-18T13:59:31.639939Z
+Research snapshot as-of UTC: 2026-10-19T18:31:02.902236Z
+Candidate: canonical-event-v0-4f0b7557f7a59c0e1a64c246488213596b8dc40ab376bd1e3c603180dc647511
+UNVERIFIED_NEWS; NO_OFFICIAL_EVIDENCE_LINKED (proposition-scoped only)
+FIRST_SEEN_NOT_PROVEN; no approved PIT/Frozen; live_feed=false; trading_signal=false
+EIA Today in Energy; Author: UNKNOWN; https://www.eia.gov/about/copyrights_reuse.php; UNKNOWN

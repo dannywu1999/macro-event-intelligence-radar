@@ -1,0 +1,10 @@
+BLS CPI: CPI for all items increases 0.6% in September; gasoline rises
+https://www.bls.gov/news.release/archives/cpi_10142026.htm
+Source-reported publication UTC: 2026-10-14T11:50:31.200000Z
+Saved local observation UTC: 2026-10-18T13:55:43.260699Z
+Recorded UTC: 2026-10-18T13:59:31.639939Z
+Research snapshot as-of UTC: 2026-10-19T18:31:02.902236Z
+Candidate: canonical-event-v0-8482ee03a4d011c228d04e01838dee95ad59749ed3263fbb7213950029fd24f3
+UNVERIFIED_NEWS; FACT_PROPOSITIONS_LINKED (proposition-scoped only)
+FIRST_SEEN_NOT_PROVEN; no approved PIT/Frozen; live_feed=false; trading_signal=false
+BLS CPI; Author: UNKNOWN; https://www.bls.gov/bls/linksite.htm; UNKNOWN

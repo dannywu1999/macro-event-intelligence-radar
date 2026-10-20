@@ -48,6 +48,8 @@ class Workbench(unittest.TestCase):
         for n,r in manifest['files'].items():self.assertEqual(w.sha((root/n).read_bytes()),r['sha256']);self.assertEqual((root/n).stat().st_size,r['bytes'])
     def test_no_private_or_unreviewed_public_assets(self):
         allowed=set(w.archive(ROOT/'public')['files'])|{'workbench/'+p for p in w.FILES}
+        import build_global_radar as radar
+        allowed|={'radar/'+p for p in radar.files_for(radar.source_ids(ROOT))}
         actual={p.relative_to(ROOT/'public').as_posix() for p in (ROOT/'public').rglob('*') if p.is_file()}
         self.assertEqual(actual,allowed)
         for p in (ROOT/'public/workbench').rglob('*'):
