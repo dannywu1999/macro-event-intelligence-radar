@@ -1,0 +1,68 @@
+{
+  "experiment_id": "M3-20261020-ISOLATED-RESEARCH",
+  "interval_seconds": 1800,
+  "max_requests": 200,
+  "max_total_bytes": 50000000,
+  "sources": [
+    {
+      "id": "ecb",
+      "name": "ECB Press",
+      "url": "https://www.ecb.europa.eu/rss/press.html",
+      "kind": "OFFICIAL_SOURCE_DISCOVERY",
+      "article_hosts": [
+        "ecb.europa.eu"
+      ],
+      "terms_status": "EXISTING_TITLE_LINK_DISCOVERY_ONLY"
+    },
+    {
+      "id": "globalvoices",
+      "name": "Global Voices",
+      "url": "https://globalvoices.org/feed/",
+      "kind": "NEWS_DISCOVERY",
+      "article_hosts": [
+        "globalvoices.org"
+      ],
+      "terms_status": "CC_BY_3_AUTHOR_ATTRIBUTION_REQUIRED"
+    },
+    {
+      "id": "fed_monetary",
+      "name": "Federal Reserve Monetary Policy",
+      "url": "https://www.federalreserve.gov/feeds/press_monetary.xml",
+      "kind": "OFFICIAL_SOURCE_DISCOVERY",
+      "article_hosts": [
+        "federalreserve.gov"
+      ],
+      "terms_status": "PUBLIC_DOMAIN_BOARD_TEXT_ATTRIBUTION_EXCEPTIONS"
+    },
+    {
+      "id": "bls_cpi",
+      "name": "BLS CPI",
+      "url": "https://www.bls.gov/feed/cpi.rss",
+      "kind": "OFFICIAL_SOURCE_DISCOVERY",
+      "article_hosts": [
+        "bls.gov"
+      ],
+      "terms_status": "PUBLIC_DOMAIN_BLS_TEXT_ATTRIBUTION_EXCEPTIONS"
+    },
+    {
+      "id": "bls_employment",
+      "name": "BLS Employment Situation",
+      "url": "https://www.bls.gov/feed/empsit.rss",
+      "kind": "OFFICIAL_SOURCE_DISCOVERY",
+      "article_hosts": [
+        "bls.gov"
+      ],
+      "terms_status": "PUBLIC_DOMAIN_BLS_TEXT_ATTRIBUTION_EXCEPTIONS"
+    },
+    {
+      "id": "360info",
+      "name": "360info",
+      "url": "https://360info.org/feed/",
+      "kind": "NEWS_DISCOVERY",
+      "article_hosts": [
+        "360info.org"
+      ],
+      "terms_status": "CC_BY_4_AUTHOR_ATTRIBUTION_REQUIRED"
+    }
+  ]
+}
